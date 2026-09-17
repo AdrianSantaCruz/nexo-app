@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+/* Oculta la barra de scroll nativa mientras se mantiene el scroll funcional
+   — se usa en el feed, donde la navegación real es con las flechas o con
+   scroll/swipe, igual que en TikTok/Instagram/YouTube web. */
+.no-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
