@@ -37,6 +37,7 @@ function mapReviewItem(row) {
     id: `resena-${row.id}`,
     kind: "review",
     buyer: row.profiles?.name ?? "Comprador",
+    buyerId: row.profiles?.id,
     initials: row.profiles?.initials ?? "U",
     store: product?.stores?.name ?? "Tienda",
     storeSlug: product?.stores?.slug,
@@ -91,7 +92,7 @@ export async function fetchFeedItems(currentUserId) {
       .limit(40),
     supabase
       .from("reviews")
-      .select("id, quote, created_at, profiles(name, initials), products(id, image_url, stores(name, slug, avatar_url))")
+      .select("id, quote, created_at, profiles(id, name, initials), products(id, image_url, stores(name, slug, avatar_url))")
       .order("created_at", { ascending: false })
       .limit(40),
     supabase

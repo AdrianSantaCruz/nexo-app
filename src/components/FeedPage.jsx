@@ -135,9 +135,15 @@ function FeedSlide({ post, liked, onToggleLike, onOpenComments }) {
               </Link>
             ) : (
               <>
-                <span className="text-sm font-semibold" style={{ color: COLOR.hueso }}>
-                  {post.buyer}
-                </span>
+                {post.buyerId ? (
+                  <Link to={`/perfil/${post.buyerId}`} className="text-sm font-semibold hover:underline" style={{ color: COLOR.hueso }}>
+                    {post.buyer}
+                  </Link>
+                ) : (
+                  <span className="text-sm font-semibold" style={{ color: COLOR.hueso }}>
+                    {post.buyer}
+                  </span>
+                )}
                 <span className="text-xs" style={{ color: COLOR.muted }}>
                   compró en{" "}
                   <Link to={`/tienda/${post.storeSlug}`} className="hover:underline" style={{ color: COLOR.muted }}>
