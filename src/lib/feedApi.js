@@ -50,10 +50,40 @@ function mapReviewItem(row) {
   };
 }
 
-// Trae productos y reseñas reales, mezclados y ordenados del más nuevo al
-// más viejo — esto alimenta tanto el Feed (vertical) como Descubrir (grid).
-export async function fetchFeedItems() {
-  const [{ data: products, error: productsError }, { data: reviews, error: reviewsError }] = await Promise.all([
+function mapPostItem(row, currentUserId) {
+  const likeRows = row.post_likes ?? [];
+  return {
+    id: `publicacion-${row.id}`,
+    postId: row.id,
+    kind: "publicacion",
+    store: row.stores?.name ?? "Tienda",
+    storeSlug: row.stores?.slug,
+    initials: row.stores?.initials ?? "T",
+    storeAvatarUrl: row.stores?.avatar_url ?? undefined,
+    caption: row.caption,
+    imageUrl: row.media_type === "image" ? row.media_url ?? undefined : undefined,
+    videoUrl: row.media_type === "video" ? row.media_url ?? undefined : undefined,
+    likes: likeRows.length,
+    likedByMe: currentUserId ? likeRows.some((l) => l.user_id === currentUserId) : false,
+    comments: (row.post_comments ?? []).length,
+    taggedProducts: (row.post_products ?? [])
+      .map((pp) => pp.products)
+      .filter(Boolean)
+      .map((p) => ({ id: p.id, name: p.name, price: formatPrice(p.price), imageUrl: p.image_url ?? undefined })),
+    createdAt: row.created_at,
+  };
+}
+
+// Trae productos, reseñas y publicaciones (foto/video) reales, mezclados y
+// ordenados del más nuevo al más viejo — esto alimenta tanto el Feed
+// (vertical) como Descubrir (grid). `currentUserId` (opcional) se usa para
+// saber si el usuario ya le dio like a cada publicación.
+export async function fetchFeedItems(currentUserId) {
+  const [
+    { data: products, error: productsError },
+    { data: reviews, error: reviewsError },
+    { data: posts, error: postsError },
+  ] = await Promise.all([
     supabase
       .from("products")
       .select("id, name, price, image_url, created_at, stores(name, slug, initials, avatar_url)")
@@ -64,12 +94,24 @@ export async function fetchFeedItems() {
       .select("id, quote, created_at, profiles(name, initials), products(id, image_url, stores(name, slug, avatar_url))")
       .order("created_at", { ascending: false })
       .limit(40),
+    supabase
+      .from("posts")
+      .select(
+        "id, caption, media_url, media_type, created_at, stores(name, slug, initials, avatar_url), post_likes(user_id), post_comments(id), post_products(products(id, name, price, image_url))"
+      )
+      .order("created_at", { ascending: false })
+      .limit(40),
   ]);
 
   if (productsError) throw productsError;
   if (reviewsError) throw reviewsError;
+  if (postsError) throw postsError;
 
-  const items = [...(products ?? []).map(mapProductItem), ...(reviews ?? []).map(mapReviewItem)];
+  const items = [
+    ...(products ?? []).map(mapProductItem),
+    ...(reviews ?? []).map(mapReviewItem),
+    ...(posts ?? []).map((row) => mapPostItem(row, currentUserId)),
+  ];
   items.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
   return items;
 }

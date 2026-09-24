@@ -1,12 +1,13 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag } from "lucide-react";
+import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag, Film } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
 import * as storesApi from "../lib/storesApi";
 import * as chatApi from "../lib/chatApi";
 import * as cartApi from "../lib/cartApi";
 import ProductEditModal from "./ProductEditModal";
+import PostCreateModal from "./PostCreateModal";
 
 // ---------------------------------------------------------------------------
 // Paleta de marca (Nexo — Nero Labs): el negro es fijo (identidad de la app).
@@ -350,15 +351,23 @@ function ProfileEditor({ store, accent, onSave, onCancel }) {
 // cuando el usuario es dueño, además ve controles para personalizar su
 // perfil y gestionar su catálogo directamente aquí.
 // ---------------------------------------------------------------------------
-function StoreHome({ store, isOwner, accent, onOpenProduct, onAskQuestion, onSaveProfile, onAddProduct, onEditProduct, onDeleteProduct }) {
+function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestion, onSaveProfile, onAddProduct, onEditProduct, onDeleteProduct }) {
   const [activeSection, setActiveSection] = useState("productos");
   const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [isCreatingPost, setIsCreatingPost] = useState(false);
+  const [postConfirmation, setPostConfirmation] = useState(false);
   const offers = store.products.filter((p) => p.isOffer);
   const catalog = store.products.filter((p) => !p.isOffer);
 
   const handleSaveProfile = (patch) => {
     onSaveProfile(patch);
     setIsEditingProfile(false);
+  };
+
+  const handlePostCreated = () => {
+    setIsCreatingPost(false);
+    setPostConfirmation(true);
+    setTimeout(() => setPostConfirmation(false), 3000);
   };
 
   return (
@@ -373,16 +382,26 @@ function StoreHome({ store, isOwner, accent, onOpenProduct, onAskQuestion, onSav
           </div>
         )}
         {isOwner && !isEditingProfile && (
-          <button
-            onClick={() => setIsEditingProfile(true)}
-            className="absolute right-3 top-3 md:right-6 md:top-6 flex items-center gap-1 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2 z-10"
-            style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
-          >
-            <Pencil size={12} style={{ color: accent }} />
-            <span className="text-[11px]" style={{ color: accent }}>
-              Editar perfil
-            </span>
-          </button>
+          <div className="absolute right-3 top-3 md:right-6 md:top-6 flex items-center gap-2 z-10">
+            <button
+              onClick={() => setIsCreatingPost(true)}
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2"
+              style={{ backgroundColor: accent, color: COLOR.negro }}
+            >
+              <Film size={12} />
+              <span className="text-[11px] font-medium">Nueva publicación</span>
+            </button>
+            <button
+              onClick={() => setIsEditingProfile(true)}
+              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2"
+              style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+            >
+              <Pencil size={12} style={{ color: accent }} />
+              <span className="text-[11px]" style={{ color: accent }}>
+                Editar perfil
+              </span>
+            </button>
+          </div>
         )}
         <div
           className="absolute left-4 md:left-8 -bottom-7 md:-bottom-10 w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center font-semibold text-lg md:text-2xl overflow-hidden z-10"
@@ -490,6 +509,26 @@ function StoreHome({ store, isOwner, accent, onOpenProduct, onAskQuestion, onSav
           </div>
         )}
       </div>
+
+      {isCreatingPost && (
+        <PostCreateModal
+          storeId={store.id}
+          authorId={userId}
+          accent={accent}
+          products={store.products}
+          onCreated={handlePostCreated}
+          onClose={() => setIsCreatingPost(false)}
+        />
+      )}
+
+      {postConfirmation && (
+        <div
+          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full px-4 py-2.5 text-sm font-medium"
+          style={{ backgroundColor: accent, color: COLOR.negro }}
+        >
+          Publicado ✓ — ya aparece en el Feed
+        </div>
+      )}
     </div>
   );
 }
@@ -851,6 +890,7 @@ export default function StorePage() {
         store={store}
         isOwner={isOwner}
         accent={accent}
+        userId={user?.id}
         onOpenProduct={handleOpenProduct}
         onAskQuestion={handleAskQuestion}
         onSaveProfile={handleSaveProfile}

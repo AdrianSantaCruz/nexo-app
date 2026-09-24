@@ -1,7 +1,10 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "react-router-dom";
-import { Tag, MessageSquareQuote, Heart, MessageCircle, Share2, ChevronUp, ChevronDown } from "lucide-react";
+import { Tag, MessageSquareQuote, Film, Heart, MessageCircle, Share2, ChevronUp, ChevronDown, ShoppingBag, X } from "lucide-react";
 import { fetchFeedItems } from "../lib/feedApi";
+import { likePost, unlikePost } from "../lib/postsApi";
+import { useAuth } from "../context/authContext";
+import PostCommentsModal from "./PostCommentsModal";
 
 // ---------------------------------------------------------------------------
 // Paleta de marca (Nexo — Nero Labs): negro dominante, lima como acento puntual
@@ -37,12 +40,28 @@ function ActionButton({ icon: Icon, count, active, onClick, fillWhenActive }) {
 // Cada publicación ocupa toda la altura disponible bajo el encabezado (como
 // la versión web de TikTok/Instagram: una columna centrada, con la página
 // scrolleando de verdad — no una caja fija en miniatura).
-function FeedSlide({ post, liked, onToggleLike }) {
+function FeedSlide({ post, liked, onToggleLike, onOpenComments }) {
   const isProduct = post.kind === "producto";
+  const isPost = post.kind === "publicacion";
+  const [showProducts, setShowProducts] = useState(false);
+  const count = isPost ? post.likes : post.likes + (liked ? 1 : 0);
+  const taggedProducts = post.taggedProducts ?? [];
   return (
     <div className="h-full w-full flex items-stretch justify-center px-2 md:px-0" style={{ scrollSnapAlign: "start" }}>
       <div className="relative h-full w-full max-w-md flex items-end" style={{ backgroundColor: COLOR.surface }}>
-        {post.imageUrl && <img src={post.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />}
+        {post.videoUrl ? (
+          <video
+            src={post.videoUrl}
+            className="absolute inset-0 w-full h-full object-cover"
+            autoPlay
+            muted
+            loop
+            playsInline
+            controls
+          />
+        ) : (
+          post.imageUrl && <img src={post.imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+        )}
 
         {/* degradado inferior para legibilidad del texto */}
         <div
@@ -63,15 +82,54 @@ function FeedSlide({ post, liked, onToggleLike }) {
               post.initials
             )}
           </Link>
-          <ActionButton icon={Heart} count={post.likes + (liked ? 1 : 0)} active={liked} fillWhenActive onClick={onToggleLike} />
-          <ActionButton icon={MessageCircle} count={post.comments} onClick={() => {}} />
+          <ActionButton icon={Heart} count={count} active={liked} fillWhenActive onClick={onToggleLike} />
+          <ActionButton icon={MessageCircle} count={post.comments} onClick={isPost ? onOpenComments : undefined} />
           <ActionButton icon={Share2} onClick={() => {}} />
+          {isPost && taggedProducts.length > 0 && (
+            <ActionButton icon={ShoppingBag} onClick={() => setShowProducts((v) => !v)} />
+          )}
         </div>
+
+        {isPost && showProducts && taggedProducts.length > 0 && (
+          <div
+            className="absolute right-16 bottom-24 w-56 rounded-xl overflow-hidden max-h-64 overflow-y-auto"
+            style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
+          >
+            <div className="flex items-center justify-between px-3 py-2" style={{ borderBottom: `1px solid ${COLOR.border}` }}>
+              <span className="text-xs font-semibold" style={{ color: COLOR.hueso }}>
+                Productos en este video
+              </span>
+              <button onClick={() => setShowProducts(false)}>
+                <X size={14} style={{ color: COLOR.muted }} />
+              </button>
+            </div>
+            {taggedProducts.map((p) => (
+              <Link
+                key={p.id}
+                to={`/tienda/${post.storeSlug}/producto/${p.id}`}
+                className="flex items-center gap-2 px-3 py-2 hover:opacity-80"
+                style={{ borderBottom: `1px solid ${COLOR.border}` }}
+              >
+                <div className="w-9 h-9 rounded-md overflow-hidden shrink-0" style={{ backgroundColor: COLOR.surface }}>
+                  {p.imageUrl && <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />}
+                </div>
+                <div className="min-w-0">
+                  <p className="text-[11px] truncate" style={{ color: COLOR.hueso }}>
+                    {p.name}
+                  </p>
+                  <p className="text-[11px] font-semibold" style={{ color: COLOR.lima }}>
+                    {p.price}
+                  </p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        )}
 
         {/* texto inferior */}
         <div className="relative px-4 pb-6 pr-16">
           <div className="flex items-center gap-1 mb-1 flex-wrap">
-            {isProduct ? (
+            {isProduct || isPost ? (
               <Link to={`/tienda/${post.storeSlug}`} className="text-sm font-semibold hover:underline" style={{ color: COLOR.hueso }}>
                 {post.store}
               </Link>
@@ -98,14 +156,23 @@ function FeedSlide({ post, liked, onToggleLike }) {
             </p>
           )}
           <div className="flex items-center gap-1">
-            {isProduct ? (
+            {isProduct && (
               <>
                 <Tag size={13} style={{ color: COLOR.lima }} />
                 <span className="text-[11px]" style={{ color: COLOR.lima }}>
                   Producto nuevo
                 </span>
               </>
-            ) : (
+            )}
+            {isPost && (
+              <>
+                <Film size={13} style={{ color: COLOR.lima }} />
+                <span className="text-[11px]" style={{ color: COLOR.lima }}>
+                  {post.videoUrl ? "Video de la tienda" : "Publicación de la tienda"}
+                </span>
+              </>
+            )}
+            {!isProduct && !isPost && (
               <>
                 <MessageSquareQuote size={13} style={{ color: COLOR.lima }} />
                 <span className="text-[11px]" style={{ color: COLOR.lima }}>
@@ -121,24 +188,44 @@ function FeedSlide({ post, liked, onToggleLike }) {
 }
 
 export default function FeedPage() {
+  const { user } = useAuth();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [likedIds, setLikedIds] = useState(new Set());
   const [activeIndex, setActiveIndex] = useState(0);
+  const [commentsPostId, setCommentsPostId] = useState(null);
   const scrollRef = useRef(null);
 
   useEffect(() => {
-    fetchFeedItems()
+    fetchFeedItems(user?.id)
       .then(setPosts)
       .finally(() => setLoading(false));
-  }, []);
+  }, [user?.id]);
 
-  const toggleLike = (id) => {
-    setLikedIds((prev) => {
-      const next = new Set(prev);
-      next.has(id) ? next.delete(id) : next.add(id);
-      return next;
+  const toggleLike = (post) => {
+    if (post.kind !== "publicacion") {
+      setLikedIds((prev) => {
+        const next = new Set(prev);
+        next.has(post.id) ? next.delete(post.id) : next.add(post.id);
+        return next;
+      });
+      return;
+    }
+    if (!user) return;
+    const wasLiked = post.likedByMe;
+    setPosts((prev) =>
+      prev.map((p) => (p.id === post.id ? { ...p, likedByMe: !wasLiked, likes: p.likes + (wasLiked ? -1 : 1) } : p))
+    );
+    const action = wasLiked ? unlikePost(post.postId, user.id) : likePost(post.postId, user.id);
+    action.catch(() => {
+      setPosts((prev) =>
+        prev.map((p) => (p.id === post.id ? { ...p, likedByMe: wasLiked, likes: p.likes + (wasLiked ? 1 : -1) } : p))
+      );
     });
+  };
+
+  const handleCommentAdded = (postId) => {
+    setPosts((prev) => prev.map((p) => (p.postId === postId ? { ...p, comments: p.comments + 1 } : p)));
   };
 
   const handleScroll = () => {
@@ -169,7 +256,15 @@ export default function FeedPage() {
           scroll/swipe normal. */}
       <div ref={scrollRef} onScroll={handleScroll} className="flex-1 overflow-y-auto no-scrollbar" style={{ scrollSnapType: "y mandatory" }}>
         {loading ? null : posts.length > 0 ? (
-          posts.map((post) => <FeedSlide key={post.id} post={post} liked={likedIds.has(post.id)} onToggleLike={() => toggleLike(post.id)} />)
+          posts.map((post) => (
+            <FeedSlide
+              key={post.id}
+              post={post}
+              liked={post.kind === "publicacion" ? post.likedByMe : likedIds.has(post.id)}
+              onToggleLike={() => toggleLike(post)}
+              onOpenComments={() => setCommentsPostId(post.postId)}
+            />
+          ))
         ) : (
           <div className="h-full flex items-center justify-center">
             <p className="text-xs text-center px-10" style={{ color: COLOR.muted }}>
@@ -199,6 +294,15 @@ export default function FeedPage() {
             <ChevronDown size={20} style={{ color: COLOR.hueso }} />
           </button>
         </div>
+      )}
+
+      {commentsPostId && (
+        <PostCommentsModal
+          postId={commentsPostId}
+          currentUser={user}
+          onClose={() => setCommentsPostId(null)}
+          onCommentAdded={() => handleCommentAdded(commentsPostId)}
+        />
       )}
     </div>
   );
