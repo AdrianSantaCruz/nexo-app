@@ -9,6 +9,7 @@ import RegisterPage from './components/RegisterPage'
 import AccountPage from './components/AccountPage'
 import CreateStorePage from './components/CreateStorePage'
 import CartPage from './components/CartPage'
+import SearchPage from './components/SearchPage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
         <Route path="/cuenta" element={<AccountPage />} />
         <Route path="/vender" element={<CreateStorePage />} />
         <Route path="/carrito" element={<CartPage />} />
+        <Route path="/buscar" element={<SearchPage />} />
       </Routes>
     </SiteLayout>
   )

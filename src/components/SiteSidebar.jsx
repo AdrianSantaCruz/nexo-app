@@ -1,4 +1,5 @@
-import { Link, useLocation } from "react-router-dom";
+import { useState } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { Search, Compass, LayoutGrid, MessageCircle, User, Plus, ShoppingCart } from "lucide-react";
 import LogoMark from "./LogoMark";
 import { useAuth } from "../context/authContext";
@@ -54,9 +55,15 @@ function SidebarItem({ icon: Icon, label, active, to, badge }) {
 // contenido de cada página empieza directamente arriba de la pantalla.
 export default function SiteSidebar() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const { count: cartCount } = useCart();
   const sellCta = user ? (user.storeSlug ? `/tienda/${user.storeSlug}` : "/vender") : "/registro";
+  const [query, setQuery] = useState("");
+
+  const submitSearch = () => {
+    if (query.trim()) navigate(`/buscar?q=${encodeURIComponent(query.trim())}`);
+  };
 
   return (
     <aside
@@ -70,14 +77,16 @@ export default function SiteSidebar() {
         </span>
       </Link>
 
-      {/* Buscador: campo completo en pantallas grandes, solo ícono en la barra angosta */}
+      {/* Buscador: campo completo en pantallas grandes, solo ícono (lleva a
+          /buscar) en la barra angosta */}
       <div className="px-2 lg:px-4 pb-2">
-        <button
+        <Link
+          to="/buscar"
           className="lg:hidden w-full h-10 rounded-full flex items-center justify-center"
           style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
         >
           <Search size={16} style={{ color: COLOR.muted }} />
-        </button>
+        </Link>
         <div
           className="hidden lg:flex items-center gap-2 rounded-full px-3 py-2"
           style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
@@ -85,6 +94,9 @@ export default function SiteSidebar() {
           <Search size={15} style={{ color: COLOR.muted }} />
           <input
             type="text"
+            value={query}
+            onChange={(e) => setQuery(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && submitSearch()}
             placeholder="Buscar tiendas o productos"
             className="bg-transparent outline-none text-sm w-full"
             style={{ color: COLOR.hueso }}
