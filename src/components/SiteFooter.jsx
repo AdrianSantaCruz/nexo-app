@@ -1,5 +1,5 @@
 const COLOR = {
-  negro: "#14110F",
+  negro: "#0B0A09",
   border: "#2A2622",
   muted: "#8A8378",
 };

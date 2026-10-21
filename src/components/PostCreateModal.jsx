@@ -3,8 +3,8 @@ import { X, ImagePlus, Video, Check } from "lucide-react";
 import * as postsApi from "../lib/postsApi";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   hueso: "#FBF6EF",
   muted: "#8A8378",
@@ -80,11 +80,11 @@ export default function PostCreateModal({ storeId, authorId, accent, products = 
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.6)" }} onClick={onClose}>
+    <div className="nexo-backdrop fixed inset-0 z-50 flex items-center justify-center p-4" style={{ backgroundColor: "rgba(0,0,0,0.6)" }} onClick={onClose}>
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-2xl p-5 max-h-[90vh] overflow-y-auto"
+        className="nexo-modal w-full max-w-sm rounded-2xl p-5 max-h-[90vh] overflow-y-auto"
         style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
       >
         <div className="flex items-center justify-between mb-4">

@@ -1,13 +1,16 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Star, Sparkles, Store, LogOut, Pencil, ImagePlus, UserPlus, UserCheck, Users } from "lucide-react";
+import { motion } from "motion/react";
+import { Star, Sparkles, Store, Pencil, ImagePlus, UserPlus, UserCheck, Users, Flag, Receipt, Settings, ChevronRight } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import * as profilesApi from "../lib/profilesApi";
 import FollowListModal from "./FollowListModal";
+import ReportModal from "./ReportModal";
+import { SPRING, SPRING_BOUNCY } from "../lib/motionConfig";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   lima: "#C8FF4D",
   hueso: "#FBF6EF",
@@ -18,12 +21,17 @@ function formatDate(iso) {
   return new Date(iso).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" });
 }
 
-function StatButton({ icon: Icon, label, value, onClick }) {
-  const Comp = onClick ? "button" : "div";
+function StatButton({ icon: Icon, label, value, onClick, delay = 0 }) {
+  const Comp = onClick ? motion.button : motion.div;
   return (
     <Comp
       onClick={onClick}
-      className="flex-1 rounded-xl p-4 text-left"
+      initial={{ opacity: 0, scale: 0.9, y: 10 }}
+      animate={{ opacity: 1, scale: 1, y: 0 }}
+      transition={{ ...SPRING_BOUNCY, delay }}
+      whileHover={onClick ? { y: -3 } : undefined}
+      whileTap={onClick ? { scale: 0.97 } : undefined}
+      className="flex-1 rounded-2xl p-4 text-left"
       style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
     >
       <Icon size={16} style={{ color: COLOR.lima }} />
@@ -205,7 +213,7 @@ function ReviewRow({ review }) {
 export default function ProfilePage() {
   const { userId: paramUserId } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser, loading: authLoading, logout, refreshUser } = useAuth();
+  const { user: currentUser, loading: authLoading, refreshUser } = useAuth();
 
   const targetUserId = paramUserId ?? currentUser?.id;
   const isOwnProfile = Boolean(currentUser) && Boolean(targetUserId) && targetUserId === currentUser.id;
@@ -221,6 +229,7 @@ export default function ProfilePage() {
   const [amFollowing, setAmFollowing] = useState(false);
   const [loadedFollowKey, setLoadedFollowKey] = useState(null);
   const [followBusy, setFollowBusy] = useState(false);
+  const [reporting, setReporting] = useState(false);
 
   useEffect(() => {
     if (!targetUserId) return;
@@ -280,11 +289,6 @@ export default function ProfilePage() {
     );
   }
 
-  const handleLogout = () => {
-    logout();
-    navigate("/");
-  };
-
   const handleSaveProfile = async (patch) => {
     await profilesApi.updateProfile(currentUser.id, patch);
     setProfile((prev) => ({ ...prev, ...patch }));
@@ -340,12 +344,15 @@ export default function ProfilePage() {
             </span>
           </button>
         )}
-        <div
+        <motion.div
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          transition={SPRING_BOUNCY}
           className="absolute left-4 md:left-6 -bottom-8 w-20 h-20 md:w-24 md:h-24 rounded-full flex items-center justify-center font-semibold text-xl overflow-hidden z-10"
           style={{ backgroundColor: COLOR.lima, border: `3px solid ${COLOR.negro}`, color: COLOR.negro }}
         >
           {profile.avatarUrl ? <img src={profile.avatarUrl} alt="" className="w-full h-full object-cover" /> : profile.initials}
-        </div>
+        </motion.div>
       </div>
 
       <div className="px-4 md:px-6">
@@ -369,25 +376,40 @@ export default function ProfilePage() {
               )}
             </div>
 
-            {!isOwnProfile && currentUser && (
-              <button
-                onClick={toggleFollow}
-                disabled={followBusy}
-                className="mt-4 flex items-center justify-center gap-1.5 rounded-full py-2.5 px-5 text-sm font-medium disabled:opacity-60"
-                style={amFollowing ? { border: `1px solid ${COLOR.border}`, color: COLOR.hueso } : { backgroundColor: COLOR.lima, color: COLOR.negro }}
-              >
-                {amFollowing ? <UserCheck size={15} /> : <UserPlus size={15} />}
-                {amFollowing ? "Siguiendo" : "Seguir"}
-              </button>
+            {!isOwnProfile && (
+              <div className="mt-4 flex items-center gap-2">
+                {currentUser && (
+                  <motion.button
+                    onClick={toggleFollow}
+                    disabled={followBusy}
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.96 }}
+                    className="flex items-center justify-center gap-1.5 rounded-full py-2.5 px-6 text-sm font-semibold disabled:opacity-60"
+                    style={amFollowing ? { border: `1px solid ${COLOR.border}`, color: COLOR.hueso } : { backgroundColor: COLOR.lima, color: COLOR.negro }}
+                  >
+                    {amFollowing ? <UserCheck size={15} /> : <UserPlus size={15} />}
+                    {amFollowing ? "Siguiendo" : "Seguir"}
+                  </motion.button>
+                )}
+                <motion.button
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => (currentUser ? setReporting(true) : navigate("/ingresar"))}
+                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  style={{ border: `1px solid ${COLOR.border}` }}
+                  aria-label="Reportar perfil"
+                >
+                  <Flag size={16} style={{ color: COLOR.muted }} />
+                </motion.button>
+              </div>
             )}
 
             <div className="flex gap-3 mt-5">
-              <StatButton icon={Star} label="Score de reseñador" value={profile.reviewerScore ? profile.reviewerScore.toFixed(1) : "—"} />
-              <StatButton icon={Sparkles} label="Puntos Nexo" value={profile.points} />
+              <StatButton delay={0.05} icon={Star} label="Score de reseñador" value={profile.reviewerScore ? profile.reviewerScore.toFixed(1) : "—"} />
+              <StatButton delay={0.1} icon={Sparkles} label="Puntos Nexo" value={profile.points} />
             </div>
             <div className="flex gap-3 mt-3">
-              <StatButton icon={Users} label="Seguidores" value={counts.followers} onClick={() => openModal("followers")} />
-              <StatButton icon={Users} label="Siguiendo" value={counts.following} onClick={() => openModal("following")} />
+              <StatButton delay={0.15} icon={Users} label="Seguidores" value={counts.followers} onClick={() => openModal("followers")} />
+              <StatButton delay={0.2} icon={Users} label="Siguiendo" value={counts.following} onClick={() => openModal("following")} />
             </div>
 
             {isOwnProfile &&
@@ -443,14 +465,33 @@ export default function ProfilePage() {
             </div>
 
             {isOwnProfile && (
-              <button onClick={handleLogout} className="flex items-center gap-2 mt-7 text-sm" style={{ color: COLOR.muted }}>
-                <LogOut size={15} />
-                Cerrar sesión
-              </button>
+              <div className="mt-7 flex flex-col gap-2">
+                {[
+                  { to: "/pedidos", icon: Receipt, label: "Mis pedidos" },
+                  { to: "/ajustes", icon: Settings, label: "Ajustes y privacidad" },
+                ].map(({ to, icon: Icon, label }) => (
+                  <Link key={to} to={to}>
+                    <motion.div
+                      whileHover={{ x: 4 }}
+                      transition={SPRING}
+                      className="flex items-center gap-3 rounded-2xl p-3.5"
+                      style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
+                    >
+                      <Icon size={18} style={{ color: COLOR.lima }} />
+                      <span className="flex-1 text-sm font-semibold" style={{ color: COLOR.hueso }}>
+                        {label}
+                      </span>
+                      <ChevronRight size={16} style={{ color: COLOR.muted }} />
+                    </motion.div>
+                  </Link>
+                ))}
+              </div>
             )}
           </>
         )}
       </div>
+
+      {reporting && <ReportModal target={{ type: "profile", id: targetUserId }} onClose={() => setReporting(false)} />}
 
       {modalType && (
         <FollowListModal

@@ -10,6 +10,10 @@ import ProfilePage from './components/ProfilePage'
 import CreateStorePage from './components/CreateStorePage'
 import CartPage from './components/CartPage'
 import SearchPage from './components/SearchPage'
+import OrdersPage from './components/OrdersPage'
+import SalesPage from './components/SalesPage'
+import SettingsPage from './components/SettingsPage'
+import LegalPage from './components/LegalPage'
 
 function App() {
   return (
@@ -28,6 +32,10 @@ function App() {
         <Route path="/vender" element={<CreateStorePage />} />
         <Route path="/carrito" element={<CartPage />} />
         <Route path="/buscar" element={<SearchPage />} />
+        <Route path="/pedidos" element={<OrdersPage />} />
+        <Route path="/ventas/:storeSlug" element={<SalesPage />} />
+        <Route path="/ajustes" element={<SettingsPage />} />
+        <Route path="/legal/:doc" element={<LegalPage />} />
       </Routes>
     </SiteLayout>
   )

@@ -36,6 +36,7 @@ function mapProduct(row) {
     price: formatPrice(row.price),
     originalPrice: row.original_price != null ? formatPrice(row.original_price) : undefined,
     isOffer: row.is_offer,
+    stock: row.stock ?? 0,
     color: row.color,
     imageUrl: row.image_url ?? undefined,
     description: row.description ?? "",
@@ -86,6 +87,20 @@ export async function fetchStoreBySlug(slug) {
   return data ? mapStore(data) : null;
 }
 
+// Escucha en tiempo real los cambios de stock de los productos de una tienda
+// (cada venta o edición del vendedor llega al instante a quien esté mirando).
+export function subscribeToStoreStock(storeId, onChange) {
+  const channel = supabase
+    .channel(`stock-${storeId}`)
+    .on(
+      "postgres_changes",
+      { event: "UPDATE", schema: "public", table: "products", filter: `store_id=eq.${storeId}` },
+      (payload) => onChange(payload.new.id, payload.new.stock)
+    )
+    .subscribe();
+  return () => supabase.removeChannel(channel);
+}
+
 export async function isSlugAvailable(slug) {
   const { data, error } = await supabase.from("stores").select("id").eq("slug", slug).maybeSingle();
   if (error) throw error;
@@ -126,6 +141,7 @@ function productPayload(product) {
     price: parsePrice(product.price),
     original_price: product.originalPrice ? parsePrice(product.originalPrice) : null,
     is_offer: Boolean(product.isOffer),
+    stock: Math.max(0, Math.floor(Number(product.stock) || 0)),
     color: product.color,
     image_url: product.imageUrl || null,
     description: product.description ?? "",

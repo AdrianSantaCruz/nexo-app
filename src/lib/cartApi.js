@@ -1,27 +1,38 @@
 import { supabase } from "./supabaseClient";
 
 // ---------------------------------------------------------------------------
-// Carrito y checkout. El "pedido" que se crea al pagar queda en estado
-// "pendiente" porque todavía no hay una pasarela de pagos conectada (ver
-// nota en supabase/migration_02_orders.sql) — es un registro real del
-// pedido, útil para coordinar el pago con la tienda por chat mientras tanto.
+// Carrito y checkout. El pedido se crea en el SERVIDOR (función SQL
+// create_order, ver supabase/migration_10_stock.sql): descuenta el stock de
+// forma atómica y calcula los precios desde la base de datos. Queda en estado
+// "pendiente" porque todavía no hay pasarela de pagos — es un registro real
+// útil para coordinar el pago con la tienda por chat mientras tanto.
 // ---------------------------------------------------------------------------
 
-const COMMISSION_RATE = 0.1; // 10% de comisión de Nexo — ajustable a futuro
+// Si el comprador eligió todas las opciones, busca si esa combinación exacta
+// tiene precio propio (ej. talla XL más cara); si no, usa el precio base.
+function resolveUnitPrice(product, selectedOptions) {
+  const groups = product.options ? Object.keys(product.options) : [];
+  if (groups.length === 0 || !selectedOptions || !groups.every((g) => selectedOptions[g])) return Number(product.price);
+  const match = (product.product_variants ?? []).find((v) => groups.every((g) => v.option_values[g] === selectedOptions[g]));
+  return match ? Number(match.price) : Number(product.price);
+}
 
 function mapCartItem(row) {
   const p = row.products;
+  const selectedOptions = row.selected_options ?? undefined;
   return {
     id: row.id,
     productId: row.product_id,
     quantity: row.quantity,
-    selectedOptions: row.selected_options ?? undefined,
+    selectedOptions,
     customizationNote: row.customization_note ?? undefined,
+    unitPrice: p ? resolveUnitPrice(p, selectedOptions) : 0,
     product: p
       ? {
           id: p.id,
           name: p.name,
           price: Number(p.price),
+          stock: p.stock ?? 0,
           imageUrl: p.image_url ?? undefined,
           storeId: p.store_id,
           storeName: p.stores?.name,
@@ -31,7 +42,8 @@ function mapCartItem(row) {
   };
 }
 
-const CART_SELECT = "*, products(id, name, price, image_url, store_id, stores(name, slug))";
+const CART_SELECT =
+  "*, products(id, name, price, stock, options, image_url, store_id, stores(name, slug), product_variants(option_values, price))";
 
 export async function fetchCart(buyerId) {
   const { data, error } = await supabase.from("cart_items").select(CART_SELECT).eq("buyer_id", buyerId).order("created_at", { ascending: true });
@@ -66,52 +78,29 @@ export async function removeCartItem(cartItemId) {
   if (error) throw error;
 }
 
-// Crea el pedido a partir del carrito: un `order` general + un `order_group`
-// por cada tienda involucrada (con su comisión calculada) + sus
-// `order_items`, y vacía el carrito.
-export async function checkout(buyerId, cartItems) {
-  const byStore = new Map();
-  for (const item of cartItems) {
-    const storeId = item.product.storeId;
-    if (!byStore.has(storeId)) byStore.set(storeId, []);
-    byStore.get(storeId).push(item);
+// Crea el pedido del carrito del usuario. Si no alcanza el stock lanza un
+// error con `code === "SIN_STOCK"` y `productName`.
+export async function checkout() {
+  const { data, error } = await supabase.rpc("create_order");
+  if (error) {
+    const match = /SIN_STOCK:(.*)/.exec(error.message ?? "");
+    if (match) {
+      const err = new Error("Sin stock suficiente");
+      err.code = "SIN_STOCK";
+      err.productName = match[1].trim();
+      throw err;
+    }
+    throw error;
   }
+  return data;
+}
 
-  const total = cartItems.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-
-  const { data: order, error: orderError } = await supabase
-    .from("orders")
-    .insert({ buyer_id: buyerId, status: "pendiente", total_amount: total })
-    .select()
-    .single();
-  if (orderError) throw orderError;
-
-  for (const [storeId, items] of byStore) {
-    const subtotal = items.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
-    const commission = Math.round(subtotal * COMMISSION_RATE * 100) / 100;
-
-    const { data: group, error: groupError } = await supabase
-      .from("order_groups")
-      .insert({ order_id: order.id, store_id: storeId, subtotal, commission_amount: commission, payout_amount: subtotal - commission })
-      .select()
-      .single();
-    if (groupError) throw groupError;
-
-    const { error: itemsError } = await supabase.from("order_items").insert(
-      items.map((i) => ({
-        order_group_id: group.id,
-        product_id: i.productId,
-        product_name: i.product.name,
-        unit_price: i.product.price,
-        quantity: i.quantity,
-        selected_options: i.selectedOptions ?? null,
-        customization_note: i.customizationNote ?? null,
-      }))
-    );
-    if (itemsError) throw itemsError;
-  }
-
-  await supabase.from("cart_items").delete().eq("buyer_id", buyerId);
-
-  return order;
+// PAGO SIMULADO (ver supabase/migration_13_payment_simulation.sql): marca el
+// pedido como pagado en el servidor con una referencia falsa. No se cobra
+// dinero real. Se reemplazará por la pasarela real (Culqi / Niubiz), que
+// confirmará el pago desde el servidor.
+export async function paySimulated(orderId, method) {
+  const { data, error } = await supabase.rpc("pay_order_simulated", { p_order: orderId, p_method: method });
+  if (error) throw error;
+  return data;
 }

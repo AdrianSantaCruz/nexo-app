@@ -4,8 +4,8 @@ import { Search, BadgeCheck } from "lucide-react";
 import { search } from "../lib/searchApi";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   lima: "#C8FF4D",
   hueso: "#FBF6EF",

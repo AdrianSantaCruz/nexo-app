@@ -3,8 +3,8 @@ import { X, Send } from "lucide-react";
 import { fetchPostComments, addComment } from "../lib/postsApi";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   lima: "#C8FF4D",
   hueso: "#FBF6EF",
@@ -40,12 +40,12 @@ export default function PostCommentsModal({ postId, currentUser, onClose, onComm
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-end md:items-center justify-center"
+      className="nexo-backdrop fixed inset-0 z-50 flex items-end md:items-center justify-center"
       style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
       onClick={onClose}
     >
       <div
-        className="w-full md:max-w-sm max-h-[80vh] md:max-h-[70vh] rounded-t-2xl md:rounded-2xl flex flex-col"
+        className="nexo-modal w-full md:max-w-sm max-h-[80vh] md:max-h-[70vh] rounded-t-2xl md:rounded-2xl flex flex-col"
         style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
         onClick={(e) => e.stopPropagation()}
       >

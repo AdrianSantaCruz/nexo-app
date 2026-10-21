@@ -86,3 +86,8 @@ export async function addComment(postId, authorId, text) {
   if (error) throw error;
   return mapComment(data);
 }
+
+export async function deletePost(postId) {
+  const { error } = await supabase.from("posts").delete().eq("id", postId);
+  if (error) throw error;
+}

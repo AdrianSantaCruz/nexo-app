@@ -59,6 +59,7 @@ function mapPostItem(row, currentUserId) {
     kind: "publicacion",
     store: row.stores?.name ?? "Tienda",
     storeSlug: row.stores?.slug,
+    storeOwnerId: row.stores?.owner_id,
     initials: row.stores?.initials ?? "T",
     storeAvatarUrl: row.stores?.avatar_url ?? undefined,
     caption: row.caption,
@@ -98,7 +99,7 @@ export async function fetchFeedItems(currentUserId) {
     supabase
       .from("posts")
       .select(
-        "id, caption, media_url, media_type, created_at, stores(name, slug, initials, avatar_url), post_likes(user_id), post_comments(id), post_products(products(id, name, price, image_url))"
+        "id, caption, media_url, media_type, created_at, stores(name, slug, initials, avatar_url, owner_id), post_likes(user_id), post_comments(id), post_products(products(id, name, price, image_url))"
       )
       .order("created_at", { ascending: false })
       .limit(40),

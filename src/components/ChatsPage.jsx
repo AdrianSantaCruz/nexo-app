@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
+import { motion } from "motion/react";
+import { SPRING } from "../lib/motionConfig";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Send, MessageCircle } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import * as chatApi from "../lib/chatApi";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   lima: "#C8FF4D",
   hueso: "#FBF6EF",
@@ -109,7 +111,14 @@ function ChatThread({ conversation, currentUserId, onBack, onMessageSent }) {
         {messages.map((m) => {
           const isMine = m.senderId === currentUserId;
           return (
-            <div key={m.id} className="flex flex-col" style={{ alignItems: isMine ? "flex-end" : "flex-start" }}>
+            <motion.div
+              key={m.id}
+              initial={{ opacity: 0, y: 10, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={SPRING}
+              className="flex flex-col"
+              style={{ alignItems: isMine ? "flex-end" : "flex-start" }}
+            >
               <div
                 className="max-w-[75%] md:max-w-sm rounded-2xl px-3.5 py-2 text-sm"
                 style={
@@ -123,7 +132,7 @@ function ChatThread({ conversation, currentUserId, onBack, onMessageSent }) {
               <span className="text-[10px] mt-1 px-1" style={{ color: COLOR.muted }}>
                 {formatTime(m.createdAt)}
               </span>
-            </div>
+            </motion.div>
           );
         })}
         {messages.length === 0 && (

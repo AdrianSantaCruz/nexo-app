@@ -128,3 +128,9 @@ export async function unfollowUser(followerId, followingId) {
   const { error } = await supabase.from("follows").delete().eq("follower_id", followerId).eq("following_id", followingId);
   if (error) throw error;
 }
+
+export async function fetchOwnStoreSlug(userId) {
+  const { data, error } = await supabase.from("stores").select("slug").eq("owner_id", userId).maybeSingle();
+  if (error) throw error;
+  return data?.slug ?? null;
+}

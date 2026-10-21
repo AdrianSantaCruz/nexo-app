@@ -2,8 +2,8 @@ import { Link } from "react-router-dom";
 import { X } from "lucide-react";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   lima: "#C8FF4D",
   hueso: "#FBF6EF",
@@ -12,9 +12,9 @@ const COLOR = {
 
 export default function FollowListModal({ title, people, loading, onClose }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.6)" }} onClick={onClose}>
+    <div className="nexo-backdrop fixed inset-0 z-50 flex items-end md:items-center justify-center" style={{ backgroundColor: "rgba(0,0,0,0.6)" }} onClick={onClose}>
       <div
-        className="w-full md:max-w-sm max-h-[75vh] md:max-h-[60vh] rounded-t-2xl md:rounded-2xl flex flex-col"
+        className="nexo-modal w-full md:max-w-sm max-h-[75vh] md:max-h-[60vh] rounded-t-2xl md:rounded-2xl flex flex-col"
         style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
         onClick={(e) => e.stopPropagation()}
       >

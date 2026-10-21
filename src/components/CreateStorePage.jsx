@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import LogoMark from "./LogoMark";
+import { AuthButton, AuthField, AuthShell } from "./ui/AuthKit";
 import { useAuth } from "../context/authContext";
 import { createStore, isSlugAvailable } from "../lib/storesApi";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   lima: "#C8FF4D",
   hueso: "#FBF6EF",
@@ -86,84 +86,46 @@ export default function CreateStorePage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-sm">
-        <div className="flex flex-col items-center mb-6">
-          <LogoMark size={40} />
-          <h1 className="text-lg font-semibold mt-3 text-center" style={{ color: COLOR.hueso }}>
-            Crea tu tienda en Nexo
-          </h1>
-        </div>
+    <AuthShell title="Crea tu tienda" subtitle="Tendrás tu propia página para vender productos y publicar videos.">
+      <form onSubmit={handleSubmit} className="flex flex-col gap-3.5">
+        <AuthField label="Nombre de tu tienda" delay={0.03} type="text" required value={name} onChange={(e) => handleNameChange(e.target.value)} />
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-3">
-          <div>
-            <label className="text-xs" style={{ color: COLOR.muted }}>
-              Nombre de tu tienda
-            </label>
+        <div>
+          <label className="text-xs font-medium" style={{ color: COLOR.muted }}>
+            Enlace de tu tienda
+          </label>
+          <div
+            className="flex items-center gap-1 mt-1.5 rounded-xl px-4 py-3 border border-[#2A2622] bg-[#0B0A09] transition focus-within:border-[#C8FF4D] focus-within:shadow-[0_0_0_3px_rgba(200,255,77,0.12)]"
+          >
+            <span className="text-xs shrink-0" style={{ color: COLOR.muted }}>
+              nexo.app/tienda/
+            </span>
             <input
               type="text"
               required
-              value={name}
-              onChange={(e) => handleNameChange(e.target.value)}
-              className="w-full mt-1 rounded-xl px-3.5 py-2.5 text-sm outline-none"
-              style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}
+              value={slug}
+              onChange={(e) => {
+                setSlugEdited(true);
+                setSlug(e.target.value);
+              }}
+              className="flex-1 bg-transparent outline-none text-sm min-w-0"
+              style={{ color: COLOR.hueso }}
             />
           </div>
+        </div>
 
-          <div>
-            <label className="text-xs" style={{ color: COLOR.muted }}>
-              Enlace de tu tienda
-            </label>
-            <div
-              className="flex items-center gap-1 mt-1 rounded-xl px-3.5 py-2.5"
-              style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
-            >
-              <span className="text-xs shrink-0" style={{ color: COLOR.muted }}>
-                nexo.app/tienda/
-              </span>
-              <input
-                type="text"
-                required
-                value={slug}
-                onChange={(e) => {
-                  setSlugEdited(true);
-                  setSlug(e.target.value);
-                }}
-                className="flex-1 bg-transparent outline-none text-sm min-w-0"
-                style={{ color: COLOR.hueso }}
-              />
-            </div>
-          </div>
+        <AuthField label="Descripción" delay={0.1} as="textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
 
-          <div>
-            <label className="text-xs" style={{ color: COLOR.muted }}>
-              Descripción
-            </label>
-            <textarea
-              rows={3}
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              className="w-full mt-1 rounded-xl px-3.5 py-2.5 text-sm outline-none resize-none"
-              style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}
-            />
-          </div>
+        {error && (
+          <p className="text-xs" style={{ color: "#FF8A65" }}>
+            {error}
+          </p>
+        )}
 
-          {error && (
-            <p className="text-xs" style={{ color: "#FF8A65" }}>
-              {error}
-            </p>
-          )}
-
-          <button
-            type="submit"
-            disabled={submitting}
-            className="w-full rounded-full py-2.5 text-sm font-medium mt-1 disabled:opacity-60"
-            style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
-          >
-            {submitting ? "Creando..." : "Crear tienda"}
-          </button>
-        </form>
-      </div>
-    </div>
+        <AuthButton type="submit" loading={submitting}>
+          {submitting ? "Creando..." : "Crear tienda"}
+        </AuthButton>
+      </form>
+    </AuthShell>
   );
 }

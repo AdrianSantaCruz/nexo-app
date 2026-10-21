@@ -1,5 +1,64 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: "Sora", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --color-nexo-negro: #0b0a09;
+  --color-nexo-surface: #151311;
+  --color-nexo-surface-high: #1e1b18;
+  --color-nexo-border: #2a2622;
+  --color-nexo-lima: #c8ff4d;
+  --color-nexo-hueso: #fbf6ef;
+  --color-nexo-muted: #8a8378;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  background-color: #0b0a09;
+  color: #fbf6ef;
+  font-family: "Sora", ui-sans-serif, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Resplandor ambiental: un halo verde muy sutil detrás de todo el sitio. */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(60rem 36rem at 12% -8%, rgba(31, 74, 18, 0.55), transparent 60%),
+    radial-gradient(40rem 30rem at 100% 110%, rgba(200, 255, 77, 0.07), transparent 60%);
+}
+
+::selection {
+  background: rgba(200, 255, 77, 0.35);
+  color: #fbf6ef;
+}
+
+:focus-visible {
+  outline: 2px solid #c8ff4d;
+  outline-offset: 2px;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Barra de scroll fina y discreta en el resto del sitio. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2a2622 transparent;
+}
+
 /* Oculta la barra de scroll nativa mientras se mantiene el scroll funcional
    — se usa en el feed, donde la navegación real es con las flechas o con
    scroll/swipe, igual que en TikTok/Instagram/YouTube web. */
@@ -9,4 +68,91 @@
 }
 .no-scrollbar::-webkit-scrollbar {
   display: none;
+}
+
+/* ---------- Animaciones ---------- */
+@keyframes nexo-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes nexo-pop-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes nexo-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes nexo-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes nexo-glow-pulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(200, 255, 77, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 22px 2px rgba(200, 255, 77, 0.35);
+  }
+}
+
+/* Los modales existentes usan estas clases en su fondo y su tarjeta. */
+.nexo-backdrop {
+  animation: nexo-fade-in 0.18s ease-out both;
+  backdrop-filter: blur(6px);
+}
+.nexo-modal {
+  animation: nexo-pop-in 0.3s cubic-bezier(0.2, 0.9, 0.3, 1.1) both;
+}
+
+.nexo-skeleton {
+  background: linear-gradient(90deg, #1e1b18 25%, #2a2622 50%, #1e1b18 75%);
+  background-size: 200% 100%;
+  animation: nexo-shimmer 1.4s linear infinite;
+}
+
+.nexo-float {
+  animation: nexo-float 3.2s ease-in-out infinite;
+}
+
+.nexo-glow {
+  box-shadow: 0 8px 28px rgba(200, 255, 77, 0.28);
+}
+.nexo-glow-pulse {
+  animation: nexo-glow-pulse 2.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }

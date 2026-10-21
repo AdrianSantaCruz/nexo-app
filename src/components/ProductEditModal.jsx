@@ -3,8 +3,8 @@ import { X, ImagePlus, Plus, Trash2 } from "lucide-react";
 import { uploadProductImage } from "../lib/storesApi";
 
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   hueso: "#FBF6EF",
   muted: "#8A8378",
@@ -68,6 +68,7 @@ export default function ProductEditModal({ product, accent, storeId, onSave, onC
   const [price, setPrice] = useState(numericValue(product?.price));
   const [isOffer, setIsOffer] = useState(Boolean(product?.isOffer));
   const [originalPrice, setOriginalPrice] = useState(numericValue(product?.originalPrice));
+  const [stock, setStock] = useState(String(product?.stock ?? 10));
   const [description, setDescription] = useState(product?.description ?? "");
   const [imageUrl, setImageUrl] = useState(product?.imageUrl ?? "");
   const [uploading, setUploading] = useState(false);
@@ -146,9 +147,10 @@ export default function ProductEditModal({ product, accent, storeId, onSave, onC
       name: name.trim(),
       price: `S/ ${price.trim()}`,
       originalPrice: isOffer && originalPrice.trim() ? `S/ ${originalPrice.trim()}` : undefined,
+      stock: Math.max(0, parseInt(stock, 10) || 0),
       isOffer,
       description: description.trim(),
-      color: "#1C1815",
+      color: "#151311",
       imageUrl,
       options,
       optionImages: cleanedOptionImages,
@@ -160,14 +162,14 @@ export default function ProductEditModal({ product, accent, storeId, onSave, onC
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="nexo-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
       onClick={onClose}
     >
       <form
         onSubmit={handleSubmit}
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-sm rounded-2xl p-5 max-h-[90vh] overflow-y-auto"
+        className="nexo-modal w-full max-w-sm rounded-2xl p-5 max-h-[90vh] overflow-y-auto"
         style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
       >
         <div className="flex items-center justify-between mb-4">
@@ -239,6 +241,24 @@ export default function ProductEditModal({ product, accent, storeId, onSave, onC
               className="w-full mt-1 rounded-lg px-3 py-2 text-sm outline-none"
               style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}
             />
+          </div>
+
+          <div>
+            <label className="text-xs" style={{ color: COLOR.muted }}>
+              Stock disponible (unidades)
+            </label>
+            <input
+              type="text"
+              inputMode="numeric"
+              required
+              value={stock}
+              onChange={(e) => setStock(e.target.value.replace(/\D/g, ""))}
+              className="w-full mt-1 rounded-lg px-3 py-2 text-sm outline-none"
+              style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}
+            />
+            <p className="text-[11px] mt-1" style={{ color: COLOR.muted }}>
+              Los compradores ven cuánto queda y se actualiza solo con cada venta.
+            </p>
           </div>
 
           <label className="flex items-center gap-2 text-xs" style={{ color: COLOR.hueso }}>

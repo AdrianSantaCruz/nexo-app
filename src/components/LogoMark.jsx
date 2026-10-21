@@ -7,7 +7,7 @@ export default function LogoMark({ size = 40 }) {
       style={{
         width: size,
         height: size,
-        backgroundColor: "#14110F",
+        backgroundColor: "#0B0A09",
         border: "1px solid #2A2622",
       }}
     >

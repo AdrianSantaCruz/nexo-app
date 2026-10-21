@@ -1,6 +1,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
-import { useParams, useNavigate } from "react-router-dom";
-import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag, Film } from "lucide-react";
+import { useParams, useNavigate, Link } from "react-router-dom";
+import { motion } from "motion/react";
+import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag, Film, Flag, Banknote } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
 import * as storesApi from "../lib/storesApi";
@@ -8,14 +9,17 @@ import * as chatApi from "../lib/chatApi";
 import * as cartApi from "../lib/cartApi";
 import ProductEditModal from "./ProductEditModal";
 import PostCreateModal from "./PostCreateModal";
+import ReportModal from "./ReportModal";
+import * as reviewsApi from "../lib/reviewsApi";
+import { SPRING_SOFT } from "../lib/motionConfig";
 
 // ---------------------------------------------------------------------------
 // Paleta de marca (Nexo — Nero Labs): el negro es fijo (identidad de la app).
 // El color de acento SÍ lo elige cada tienda.
 // ---------------------------------------------------------------------------
 const COLOR = {
-  negro: "#14110F",
-  surface: "#1C1815",
+  negro: "#0B0A09",
+  surface: "#151311",
   border: "#2A2622",
   hueso: "#FBF6EF",
   muted: "#8A8378",
@@ -90,7 +94,12 @@ function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDele
   const accent = useAccent();
   const isSmall = size === "small";
   return (
-    <div
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileHover={{ y: -4, boxShadow: "0 14px 30px rgba(0,0,0,0.45)" }}
+      whileTap={{ scale: 0.98 }}
+      transition={SPRING_SOFT}
       className={`relative rounded-xl overflow-hidden text-left ${isSmall ? "shrink-0 w-28 md:w-36" : "w-full"}`}
       style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
     >
@@ -102,7 +111,7 @@ function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDele
               onEdit(product);
             }}
             className="w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(20,17,15,0.75)" }}
+            style={{ backgroundColor: "rgba(11,10,9,0.75)" }}
           >
             <Pencil size={11} style={{ color: COLOR.hueso }} />
           </button>
@@ -112,7 +121,7 @@ function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDele
               onDelete(product);
             }}
             className="w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(20,17,15,0.75)" }}
+            style={{ backgroundColor: "rgba(11,10,9,0.75)" }}
           >
             <Trash2 size={11} style={{ color: "#FF8A65" }} />
           </button>
@@ -122,6 +131,23 @@ function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDele
         <div className="relative" style={{ height: isSmall ? 80 : 100, backgroundColor: product.color }}>
           {product.imageUrl && (
             <img src={product.imageUrl} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
+          )}
+          {product.stock === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: "rgba(11,10,9,0.7)" }}>
+              <span className="text-[11px] font-semibold" style={{ color: COLOR.hueso }}>
+                Agotado
+              </span>
+            </div>
+          )}
+          {product.stock > 0 && product.stock <= 5 && (
+            <div
+              className="absolute bottom-1.5 left-1.5 rounded-full px-1.5 py-0.5"
+              style={{ backgroundColor: "rgba(11,10,9,0.8)", border: "1px solid #FF8A65" }}
+            >
+              <span className="text-[9px] font-semibold" style={{ color: "#FF8A65" }}>
+                ¡Quedan {product.stock}!
+              </span>
+            </div>
           )}
           {product.isOffer && (
             <div
@@ -151,7 +177,7 @@ function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDele
           </div>
         </div>
       </button>
-    </div>
+    </motion.div>
   );
 }
 
@@ -356,6 +382,7 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [postConfirmation, setPostConfirmation] = useState(false);
+  const [reportTarget, setReportTarget] = useState(null);
   const offers = store.products.filter((p) => p.isOffer);
   const catalog = store.products.filter((p) => !p.isOffer);
 
@@ -490,22 +517,40 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
 
       <div className="px-4 md:px-8 pt-5 pb-6 md:max-w-sm">
         {isOwner ? (
-          <p className="text-[11px] text-center" style={{ color: COLOR.muted }}>
-            Esta es la vista pública de tu tienda.
-          </p>
+          <div className="flex flex-col items-center gap-2">
+            <p className="text-[11px] text-center" style={{ color: COLOR.muted }}>
+              Esta es la vista pública de tu tienda.
+            </p>
+            <Link
+              to={`/ventas/${store.slug}`}
+              className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold"
+              style={{ backgroundColor: accent, color: COLOR.negro }}
+            >
+              <Banknote size={14} />
+              Ver mis ventas
+            </Link>
+          </div>
         ) : (
           <div className="flex items-center gap-2">
-            <button className="flex-1 rounded-full py-2.5 text-sm font-medium" style={{ backgroundColor: accent, color: COLOR.negro }}>
-              Seguir
-            </button>
-            <button
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
               onClick={onAskQuestion}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-full py-2.5 text-sm font-medium border"
-              style={{ borderColor: accent, color: accent }}
+              className="flex-1 flex items-center justify-center gap-1.5 rounded-full py-2.5 text-sm font-semibold"
+              style={{ backgroundColor: accent, color: COLOR.negro }}
             >
               <MessageCircleQuestion size={15} />
               Preguntar
-            </button>
+            </motion.button>
+            <motion.button
+              whileTap={{ scale: 0.9 }}
+              onClick={() => setReportTarget({ type: "store", id: store.id })}
+              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+              style={{ border: `1px solid ${COLOR.border}` }}
+              aria-label="Reportar tienda"
+            >
+              <Flag size={16} style={{ color: COLOR.muted }} />
+            </motion.button>
           </div>
         )}
       </div>
@@ -520,6 +565,8 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
           onClose={() => setIsCreatingPost(false)}
         />
       )}
+
+      {reportTarget && <ReportModal target={reportTarget} onClose={() => setReportTarget(null)} />}
 
       {postConfirmation && (
         <div
@@ -550,7 +597,45 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
   const [adding, setAdding] = useState(false);
   const [added, setAdded] = useState(false);
   const [cartError, setCartError] = useState("");
-  const productReviews = reviews.filter((r) => r.productId === product.id);
+  const [extraReviews, setExtraReviews] = useState([]);
+  const [eligibility, setEligibility] = useState(null);
+  const [reviewText, setReviewText] = useState("");
+  const [sendingReview, setSendingReview] = useState(false);
+  const [reviewError, setReviewError] = useState("");
+  const [reporting, setReporting] = useState(false);
+  const productReviews = [...reviews.filter((r) => r.productId === product.id), ...extraReviews];
+  const userId = user?.id;
+
+  useEffect(() => {
+    if (!userId) return;
+    let cancelled = false;
+    reviewsApi
+      .fetchReviewEligibility(userId, product.id)
+      .then((e) => !cancelled && setEligibility({ key: `${userId}:${product.id}`, ...e }))
+      .catch(() => undefined);
+    return () => {
+      cancelled = true;
+    };
+  }, [userId, product.id]);
+
+  const canReview = Boolean(eligibility && eligibility.key === `${userId}:${product.id}` && eligibility.purchased && !eligibility.reviewed);
+
+  const submitReview = async () => {
+    const text = reviewText.trim();
+    if (!text || !userId) return;
+    setReviewError("");
+    setSendingReview(true);
+    try {
+      await reviewsApi.addReview(product.id, userId, text);
+      setExtraReviews((prev) => [...prev, { id: `new-${Date.now()}`, productId: product.id, buyer: user.name, initials: user.initials, quote: text }]);
+      setEligibility((prev) => (prev ? { ...prev, reviewed: true } : prev));
+      setReviewText("");
+    } catch {
+      setReviewError("No se pudo publicar tu reseña. Inténtalo de nuevo.");
+    } finally {
+      setSendingReview(false);
+    }
+  };
   const hasOptions = product.options && Object.keys(product.options).length > 0;
 
   // Si el comprador ya eligió un valor para CADA opción, buscamos si esa
@@ -575,7 +660,9 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
     }
   }
   const displayImageUrl = optionImageUrl || product.imageUrl;
-  const canAddToCart = !hasOptions || allOptionsSelected;
+  const outOfStock = product.stock === 0;
+  const effectiveQuantity = Math.max(1, Math.min(quantity, product.stock));
+  const canAddToCart = (!hasOptions || allOptionsSelected) && !outOfStock;
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -588,7 +675,7 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
       await cartApi.addToCart({
         buyerId: user.id,
         productId: product.id,
-        quantity,
+        quantity: effectiveQuantity,
         selectedOptions: hasOptions ? selectedOptions : undefined,
         customizationNote: product.isCustomizable ? customizationNote.trim() : undefined,
       });
@@ -604,13 +691,13 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      className="nexo-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
       onClick={onBack}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-lg rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
+        className="nexo-modal w-full max-w-lg rounded-2xl overflow-hidden max-h-[90vh] overflow-y-auto"
         style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
       >
         <div
@@ -623,15 +710,25 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
           <button
             onClick={onBack}
             className="absolute right-3 top-3 w-8 h-8 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(20,17,15,0.65)" }}
+            style={{ backgroundColor: "rgba(11,10,9,0.65)" }}
           >
             <X size={16} style={{ color: COLOR.hueso }} />
           </button>
+          {!isOwner && (
+            <button
+              onClick={() => setReporting(true)}
+              className="absolute left-3 top-3 w-8 h-8 rounded-full flex items-center justify-center"
+              style={{ backgroundColor: "rgba(11,10,9,0.65)" }}
+              aria-label="Reportar producto"
+            >
+              <Flag size={14} style={{ color: COLOR.hueso }} />
+            </button>
+          )}
           {isOwner && (
             <button
               onClick={() => onEditProduct(product)}
               className="absolute left-3 top-3 flex items-center gap-1 rounded-full px-3 py-1.5"
-              style={{ backgroundColor: "rgba(20,17,15,0.65)" }}
+              style={{ backgroundColor: "rgba(11,10,9,0.65)" }}
             >
               <Pencil size={12} style={{ color: COLOR.hueso }} />
               <span className="text-[11px]" style={{ color: COLOR.hueso }}>
@@ -660,6 +757,12 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
               Elige {optionGroupNames.join(" y ")} para confirmar el precio final.
             </p>
           )}
+          <p
+            className="text-xs font-medium mt-1.5"
+            style={{ color: product.stock === 0 ? "#FF8A65" : product.stock <= 5 ? "#FF8A65" : accent }}
+          >
+            {product.stock === 0 ? "Agotado" : product.stock <= 5 ? `¡Últimas ${product.stock} unidades!` : `${product.stock} disponibles`}
+          </p>
           <p className="text-xs mt-2 leading-relaxed" style={{ color: COLOR.muted }}>
             {product.description}
           </p>
@@ -732,11 +835,12 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
                   <Minus size={12} style={{ color: COLOR.hueso }} />
                 </button>
                 <span className="text-sm w-4 text-center" style={{ color: COLOR.hueso }}>
-                  {quantity}
+                  {effectiveQuantity}
                 </span>
                 <button
-                  onClick={() => setQuantity((q) => q + 1)}
-                  className="w-7 h-7 rounded-full flex items-center justify-center"
+                  onClick={() => setQuantity((q) => Math.min(product.stock, q + 1))}
+                  disabled={effectiveQuantity >= product.stock}
+                  className="w-7 h-7 rounded-full flex items-center justify-center disabled:opacity-30"
                   style={{ border: `1px solid ${COLOR.border}` }}
                 >
                   <Plus size={12} style={{ color: COLOR.hueso }} />
@@ -752,7 +856,7 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
                 style={{ backgroundColor: accent, color: COLOR.negro }}
               >
                 <ShoppingCart size={15} />
-                {added ? "Agregado ✓" : adding ? "Agregando..." : "Agregar al carrito"}
+                {outOfStock ? "Agotado" : added ? "Agregado ✓" : adding ? "Agregando..." : "Agregar al carrito"}
               </button>
               <button
                 onClick={onAskQuestion}
@@ -775,6 +879,41 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
           <p className="text-sm font-medium mb-2" style={{ color: COLOR.hueso }}>
             Reseñas de este producto
           </p>
+          {canReview && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="rounded-xl p-3 mb-3"
+              style={{ backgroundColor: COLOR.surface, border: "1px solid rgba(200,255,77,0.25)" }}
+            >
+              <p className="text-[11px] mb-2" style={{ color: COLOR.muted }}>
+                Compraste este producto — cuéntanos qué tal
+              </p>
+              <textarea
+                rows={2}
+                value={reviewText}
+                onChange={(e) => setReviewText(e.target.value)}
+                maxLength={400}
+                placeholder="Escribe tu reseña..."
+                className="w-full rounded-lg px-3 py-2 text-sm outline-none resize-none"
+                style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}
+              />
+              {reviewError && (
+                <p className="text-[11px] mt-1" style={{ color: "#FF8A65" }}>
+                  {reviewError}
+                </p>
+              )}
+              <motion.button
+                whileTap={{ scale: 0.97 }}
+                onClick={submitReview}
+                disabled={!reviewText.trim() || sendingReview}
+                className="w-full rounded-full py-2 text-sm font-semibold mt-2 disabled:opacity-50"
+                style={{ backgroundColor: accent, color: COLOR.negro }}
+              >
+                {sendingReview ? "Publicando..." : "Publicar reseña"}
+              </motion.button>
+            </motion.div>
+          )}
           {productReviews.length > 0 ? (
             <div className="flex flex-col gap-2">
               {productReviews.map((r) => (
@@ -803,6 +942,7 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
           )}
         </div>
       </div>
+      {reporting && <ReportModal target={{ type: "product", id: product.id }} onClose={() => setReporting(false)} />}
     </div>
   );
 }
@@ -833,6 +973,16 @@ export default function StorePage() {
       cancelled = true;
     };
   }, [storeSlug]);
+
+  const storeId = store?.id;
+  useEffect(() => {
+    if (!storeId) return;
+    return storesApi.subscribeToStoreStock(storeId, (productId, stock) => {
+      setStore((prev) =>
+        prev ? { ...prev, products: prev.products.map((p) => (p.id === productId ? { ...p, stock } : p)) } : prev
+      );
+    });
+  }, [storeId]);
 
   if (loading) return null;
 
@@ -923,13 +1073,13 @@ export default function StorePage() {
 
       {productPendingDelete && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4"
+          className="nexo-backdrop fixed inset-0 z-50 flex items-center justify-center p-4"
           style={{ backgroundColor: "rgba(0,0,0,0.6)" }}
           onClick={() => setProductPendingDelete(null)}
         >
           <div
             onClick={(e) => e.stopPropagation()}
-            className="w-full max-w-xs rounded-2xl p-5"
+            className="nexo-modal w-full max-w-xs rounded-2xl p-5"
             style={{ backgroundColor: COLOR.negro, border: `1px solid ${COLOR.border}` }}
           >
             <p className="text-sm" style={{ color: COLOR.hueso }}>
