@@ -19,6 +19,7 @@ function mapConversation(row, myUserId) {
     id: row.id,
     storeId: row.store_id,
     storeSlug: row.stores?.slug,
+    storeName: row.stores?.name,
     buyerId: row.buyer_id,
     isBuyer,
     otherName: isBuyer ? row.stores?.name ?? "Tienda" : row.profiles?.name ?? "Comprador",

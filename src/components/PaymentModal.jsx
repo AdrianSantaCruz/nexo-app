@@ -28,7 +28,7 @@ function formatSoles(n) {
 
 // PAGO SIMULADO: no se cobra dinero real. `onPay(method)` debe registrar el
 // pago de verdad en el servidor y lanzar un Error si falla.
-export default function PaymentModal({ total, onPay, onClose, onDone }) {
+export default function PaymentModal({ total, note, onPay, onClose, onDone }) {
   const [method, setMethod] = useState("tarjeta");
   const [phase, setPhase] = useState("choose");
   const [step, setStep] = useState(0);
@@ -198,6 +198,11 @@ export default function PaymentModal({ total, onPay, onClose, onDone }) {
               <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }} className="mt-1.5 text-sm text-center" style={{ color: COLOR.muted }}>
                 Tu pedido quedó registrado. Las tiendas ya pueden prepararlo.
               </motion.p>
+              {note && (
+                <motion.p initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }} className="mt-3 text-xs text-center leading-relaxed" style={{ color: COLOR.lima }}>
+                  {note}
+                </motion.p>
+              )}
               <motion.button
                 initial={{ opacity: 0, y: 8 }}
                 animate={{ opacity: 1, y: 0 }}

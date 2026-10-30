@@ -78,10 +78,13 @@ export async function removeCartItem(cartItemId) {
   if (error) throw error;
 }
 
-// Crea el pedido del carrito del usuario. Si no alcanza el stock lanza un
-// error con `code === "SIN_STOCK"` y `productName`.
-export async function checkout() {
-  const { data, error } = await supabase.rpc("create_order");
+// Crea el pedido del carrito del usuario. `deliveryMethod` es "locker" (con
+// `pickupPointId`) o "coordinar". Si no alcanza el stock lanza un error con
+// `code === "SIN_STOCK"` y `productName`.
+export async function checkout({ deliveryMethod = "coordinar", pickupPointId = null } = {}) {
+  // Sin locker se llama sin parámetros: funciona igual antes y después de la migración 15.
+  const params = deliveryMethod === "locker" ? { p_delivery: "locker", p_pickup_point: pickupPointId } : undefined;
+  const { data, error } = await supabase.rpc("create_order", params);
   if (error) {
     const match = /SIN_STOCK:(.*)/.exec(error.message ?? "");
     if (match) {

@@ -1,12 +1,14 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { AnimatePresence, motion } from "motion/react";
 import { Minus, Plus, Trash2, ShoppingBag, Store, ChevronRight } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
 import * as cartApi from "../lib/cartApi";
+import * as pickupApi from "../lib/pickupApi";
 import { EASE_OUT, SPRING, SPRING_SOFT } from "../lib/motionConfig";
 import PaymentModal from "./PaymentModal";
+import PickupPicker from "./PickupPicker";
 import { EmptyState, Reveal } from "./ui/Motion";
 
 const COLOR = {
@@ -112,6 +114,26 @@ export default function CartPage() {
   // Si el pedido se creó pero el pago falló, se reintenta el pago de ESE pedido.
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [error, setError] = useState("");
+  // Entrega: locker Nexo (con punto de recojo) o a coordinar con la tienda.
+  const [deliveryMethod, setDeliveryMethod] = useState("locker");
+  const [pickupPointId, setPickupPointId] = useState(null);
+  const [points, setPoints] = useState([]);
+  const [pointsStatus, setPointsStatus] = useState("loading");
+
+  useEffect(() => {
+    let cancelled = false;
+    pickupApi
+      .fetchPickupPoints()
+      .then((data) => {
+        if (cancelled) return;
+        setPoints(data);
+        setPointsStatus("ready");
+      })
+      .catch(() => !cancelled && setPointsStatus("error"));
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   if (authLoading) return null;
 
@@ -144,6 +166,10 @@ export default function CartPage() {
   }
   const total = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const hasStockProblem = items.some((i) => i.product.stock < i.quantity);
+  const lockersAvailable = pointsStatus === "ready" && points.length > 0;
+  const effectiveMethod = lockersAvailable ? deliveryMethod : "coordinar";
+  const needsLocker = effectiveMethod === "locker" && !pickupPointId;
+  const chosenPoint = points.find((p) => p.id === pickupPointId);
 
   const handleChangeQty = async (item, quantity) => {
     await cartApi.updateCartItemQuantity(item.id, quantity);
@@ -165,7 +191,7 @@ export default function CartPage() {
     let orderId = pendingOrderId;
     if (!orderId) {
       try {
-        orderId = await cartApi.checkout();
+        orderId = await cartApi.checkout({ deliveryMethod: effectiveMethod, pickupPointId: effectiveMethod === "locker" ? pickupPointId : null });
       } catch (err) {
         if (err.code === "SIN_STOCK") {
           setPaying(false);
@@ -222,9 +248,19 @@ export default function CartPage() {
         ))}
       </AnimatePresence>
 
+      <PickupPicker
+        method={deliveryMethod}
+        onMethod={setDeliveryMethod}
+        points={points}
+        status={pointsStatus}
+        selectedId={pickupPointId}
+        onSelect={setPickupPointId}
+        disabled={Boolean(pendingOrderId)}
+      />
+
       <motion.div
         layout
-        className="rounded-2xl p-5 mt-6"
+        className="rounded-2xl p-5 mt-4"
         style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
         initial={{ opacity: 0, y: 16 }}
         animate={{ opacity: 1, y: 0 }}
@@ -257,14 +293,19 @@ export default function CartPage() {
 
         <motion.button
           onClick={openPayment}
-          disabled={hasStockProblem}
-          whileHover={{ y: hasStockProblem ? 0 : -2 }}
+          disabled={hasStockProblem || needsLocker}
+          whileHover={{ y: hasStockProblem || needsLocker ? 0 : -2 }}
           whileTap={{ scale: 0.98 }}
           className="nexo-glow w-full rounded-full py-3.5 text-sm font-semibold mt-4 disabled:opacity-50"
           style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
         >
           Continuar al pago
         </motion.button>
+        {needsLocker && (
+          <p className="text-[11px] text-center mt-2.5" style={{ color: COLOR.lima }}>
+            Elige el locker donde recogerás tu pedido para continuar.
+          </p>
+        )}
         <p className="text-[11px] text-center mt-2.5" style={{ color: COLOR.muted }}>
           Modo simulación: el pago se registra en Nexo pero no se cobra dinero real.
         </p>
@@ -273,6 +314,7 @@ export default function CartPage() {
       {paying && (
         <PaymentModal
           total={frozenTotal}
+          note={effectiveMethod === "locker" && chosenPoint ? `Recogerás tu pedido en ${chosenPoint.name}. Te daremos un código de apertura cuando la tienda lo deje allí.` : undefined}
           onPay={handlePay}
           onClose={() => setPaying(false)}
           onDone={() => {

@@ -4,6 +4,7 @@ import { Receipt } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import * as ordersApi from "../lib/ordersApi";
 import * as cartApi from "../lib/cartApi";
+import * as pickupApi from "../lib/pickupApi";
 import OrderCard from "./OrderCard";
 import PaymentModal from "./PaymentModal";
 import { EmptyState, Reveal, Skeleton } from "./ui/Motion";
@@ -68,6 +69,18 @@ export default function OrdersPage() {
     }
   };
 
+  const confirmPickup = async (group) => {
+    setBusyId(group.id);
+    try {
+      await pickupApi.confirmPickup(group.id);
+      reload();
+    } catch {
+      window.alert("No se pudo confirmar. Inténtalo de nuevo.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto px-4 md:px-8 py-8">
       <Reveal>
@@ -104,6 +117,7 @@ export default function OrdersPage() {
               busy={busyId === g.id}
               onCancel={() => cancel(g)}
               onPay={() => setPayingOrderId(g.orderId)}
+              onConfirmPickup={() => confirmPickup(g)}
             />
           ))}
         </div>

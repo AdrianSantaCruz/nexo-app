@@ -1,6 +1,6 @@
 import { motion } from "motion/react";
-import { Store, User, ShieldCheck, Clock, Undo2 } from "lucide-react";
-import { METHOD_LABEL, STATUS_LABEL } from "../lib/ordersApi";
+import { Store, User, ShieldCheck, Clock, Undo2, MapPin, KeyRound, PackageCheck } from "lucide-react";
+import { METHOD_LABEL, STATUS_LABEL, statusLabel } from "../lib/ordersApi";
 import { EASE_OUT, SPRING_SOFT } from "../lib/motionConfig";
 
 const COLOR = {
@@ -27,11 +27,14 @@ function formatSoles(n) {
 }
 
 // Tarjeta de un pedido (la parte de UNA tienda). `mode`: "buyer" o "seller".
-export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCancel, onPay }) {
+export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCancel, onPay, onConfirmPickup }) {
   const color = STATUS_COLOR[group.status];
   const paid = group.paymentStatus === "pagado";
   const refunded = group.paymentStatus === "cancelado" && Boolean(group.paymentReference);
-  const next = NEXT[group.status];
+  const isLocker = group.deliveryMethod === "locker";
+  // En pedidos de locker la tienda llega hasta "enviado" (dejado en el locker); "entregado" lo confirma el comprador.
+  const next = isLocker && group.status === "enviado" ? undefined : NEXT[group.status];
+  const nextLabel = isLocker && next === "enviado" ? "dejado en el locker" : next ? STATUS_LABEL[next].toLowerCase() : "";
   const date = new Date(group.createdAt).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" });
   const payColor = paid ? COLOR.lima : refunded ? "#FF8A65" : "#F5C242";
   const PayIcon = paid ? ShieldCheck : refunded ? Undo2 : Clock;
@@ -58,7 +61,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
           style={{ border: `1px solid ${color}`, color }}
         >
           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: color }} />
-          {STATUS_LABEL[group.status]}
+          {statusLabel(group)}
         </span>
       </div>
       <p className="text-xs mt-1" style={{ color: COLOR.muted }}>
@@ -76,6 +79,28 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
             ? "Reembolsado (simulado)"
             : "Pago pendiente"}
       </div>
+
+      {isLocker && group.pickupPoint && (
+        <div className="mt-3 flex items-start gap-2.5 rounded-xl p-3" style={{ backgroundColor: "rgba(200,255,77,0.05)", border: "1px solid rgba(200,255,77,0.18)" }}>
+          <MapPin size={16} className="shrink-0 mt-0.5" style={{ color: COLOR.lima }} />
+          <div className="min-w-0">
+            <p className="text-sm font-semibold" style={{ color: COLOR.hueso }}>
+              {group.pickupPoint.name}
+            </p>
+            <p className="text-xs" style={{ color: COLOR.muted }}>
+              {group.pickupPoint.district} · {group.pickupPoint.address}
+            </p>
+            <p className="text-xs" style={{ color: COLOR.muted }}>
+              {group.pickupPoint.hours}
+            </p>
+          </div>
+        </div>
+      )}
+      {!isLocker && (
+        <p className="text-xs mt-3" style={{ color: COLOR.muted }}>
+          Entrega: a coordinar con la tienda por chat.
+        </p>
+      )}
 
       <div className="mt-3 flex flex-col gap-2">
         {group.lines.map((l) => (
@@ -116,6 +141,36 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
         </p>
       )}
 
+      {mode === "buyer" && isLocker && group.status === "enviado" && (
+        <div className="mt-3 rounded-xl p-4 text-center" style={{ backgroundColor: "rgba(200,255,77,0.08)", border: "1px solid rgba(200,255,77,0.3)" }}>
+          <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: COLOR.muted }}>
+            <KeyRound size={13} style={{ color: COLOR.lima }} />
+            Tu pedido ya está en el locker. Código de apertura:
+          </p>
+          <p className="text-3xl font-bold tracking-[0.3em] mt-1.5" style={{ color: COLOR.lima }}>
+            {group.lockerCode ?? "······"}
+          </p>
+          {onConfirmPickup && (
+            <motion.button
+              whileTap={{ scale: 0.97 }}
+              whileHover={{ y: -1 }}
+              disabled={busy}
+              onClick={onConfirmPickup}
+              className="nexo-glow w-full rounded-full py-2.5 text-sm font-semibold mt-3 flex items-center justify-center gap-2"
+              style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
+            >
+              <PackageCheck size={16} />
+              Ya recogí mi pedido
+            </motion.button>
+          )}
+        </div>
+      )}
+      {mode === "buyer" && isLocker && (group.status === "pendiente" || group.status === "preparando") && group.status !== "cancelado" && (
+        <p className="text-xs mt-3" style={{ color: COLOR.muted }}>
+          Cuando la tienda deje tu pedido en el locker verás aquí tu código de apertura.
+        </p>
+      )}
+
       {mode === "buyer" && (
         <div className="flex gap-2 mt-3">
           {group.paymentStatus === "pendiente" && group.status === "pendiente" && onPay && (
@@ -150,6 +205,12 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
         </p>
       )}
 
+      {mode === "seller" && isLocker && group.status === "enviado" && (
+        <p className="text-xs mt-3" style={{ color: COLOR.muted }}>
+          Dejaste el pedido en el locker. Queda en "Listo en locker" hasta que el comprador lo recoja y lo confirme.
+        </p>
+      )}
+
       {mode === "seller" && group.status !== "cancelado" && group.status !== "entregado" && onStatus && (
         <div className="flex gap-2 mt-3">
           {next && paid && (
@@ -161,7 +222,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
               className="flex-1 rounded-full py-2.5 text-sm font-semibold"
               style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
             >
-              Marcar como {STATUS_LABEL[next].toLowerCase()}
+              Marcar como {nextLabel}
             </motion.button>
           )}
           <motion.button

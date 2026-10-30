@@ -1,10 +1,11 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Compass, LayoutGrid, MessageCircle, User, Plus, ShoppingCart, Receipt } from "lucide-react";
+import { Search, Compass, LayoutGrid, MessageCircle, User, Plus, ShoppingCart, Receipt, Lock, LayoutDashboard, Package, Clapperboard, Store, ShoppingBag } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import LogoMark from "./LogoMark";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
+import { useMode } from "../context/modeContext";
 import { SPRING, SPRING_BOUNCY } from "../lib/motionConfig";
 
 const COLOR = {
@@ -58,6 +59,41 @@ function SidebarItem({ icon: Icon, label, active, to, badge }) {
   );
 }
 
+// Interruptor Comprador / Tienda (solo para cuentas con tienda). En la barra
+// angosta es un solo botón que alterna el modo.
+function ModeSwitch({ storeMode, onChange }) {
+  const options = [
+    { id: false, label: "Comprador", icon: ShoppingBag },
+    { id: true, label: "Tienda", icon: Store },
+  ];
+  return (
+    <div className="px-2 lg:px-4 pb-2">
+      <div className="hidden lg:flex relative rounded-full p-1" style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}>
+        {options.map((o) => {
+          const on = storeMode === o.id;
+          return (
+            <button key={o.label} onClick={() => !on && onChange(o.id)} className="relative flex-1 flex items-center justify-center gap-1.5 rounded-full py-1.5 text-xs font-semibold">
+              {on && <motion.span layoutId="mode-pill" transition={SPRING} className="absolute inset-0 rounded-full" style={{ backgroundColor: COLOR.lima }} />}
+              <o.icon size={13} className="relative" style={{ color: on ? COLOR.negro : COLOR.muted }} />
+              <span className="relative" style={{ color: on ? COLOR.negro : COLOR.muted }}>
+                {o.label}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+      <button
+        onClick={() => onChange(!storeMode)}
+        aria-label={storeMode ? "Cambiar a modo comprador" : "Cambiar a modo tienda"}
+        className="lg:hidden w-full h-10 rounded-full flex items-center justify-center"
+        style={{ backgroundColor: storeMode ? COLOR.lima : COLOR.surface, border: `1px solid ${storeMode ? COLOR.lima : COLOR.border}` }}
+      >
+        {storeMode ? <Store size={16} style={{ color: COLOR.negro }} /> : <ShoppingBag size={16} style={{ color: COLOR.muted }} />}
+      </button>
+    </div>
+  );
+}
+
 // Nav lateral fijo, inspirado en TikTok/Instagram/YouTube web: la marca y la
 // búsqueda arriba, la navegación principal debajo, sin barra superior — el
 // contenido de cada página empieza directamente arriba de la pantalla.
@@ -66,7 +102,8 @@ export default function SiteSidebar() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { count: cartCount } = useCart();
-  const sellCta = user ? (user.storeSlug ? `/tienda/${user.storeSlug}` : "/vender") : "/registro";
+  const { storeMode, hasStore, setStoreMode } = useMode();
+  const sellCta = user ? (user.storeSlug ? (storeMode ? "/panel/publicaciones?nueva=1" : `/tienda/${user.storeSlug}`) : "/vender") : "/registro";
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
   const path = location.pathname;
@@ -123,12 +160,36 @@ export default function SiteSidebar() {
         </motion.div>
       </div>
 
+      {hasStore && (
+        <ModeSwitch
+          storeMode={storeMode}
+          onChange={(on) => {
+            setStoreMode(on);
+            navigate(on ? "/panel" : "/");
+          }}
+        />
+      )}
+
       <nav className="flex-1 flex flex-col gap-1 px-2 lg:px-3 mt-1 overflow-y-auto no-scrollbar">
-        <SidebarItem icon={Compass} label="Para ti" to="/" active={path === "/"} />
-        <SidebarItem icon={LayoutGrid} label="Descubrir" to="/descubrir" active={path === "/descubrir"} />
-        <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} />
-        <SidebarItem icon={ShoppingCart} label="Carrito" to="/carrito" active={path === "/carrito"} badge={cartCount} />
-        {user && <SidebarItem icon={Receipt} label="Mis pedidos" to="/pedidos" active={path === "/pedidos"} />}
+        {storeMode ? (
+          <>
+            <SidebarItem icon={LayoutDashboard} label="Panel" to="/panel" active={path === "/panel"} />
+            <SidebarItem icon={Receipt} label="Pedidos" to={`/ventas/${user.storeSlug}`} active={path.startsWith("/ventas")} />
+            <SidebarItem icon={Package} label="Mi catálogo" to={`/tienda/${user.storeSlug}`} active={path.startsWith("/tienda")} />
+            <SidebarItem icon={Clapperboard} label="Publicaciones" to="/panel/publicaciones" active={path === "/panel/publicaciones"} />
+            <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} />
+            <SidebarItem icon={Lock} label="Lockers" to="/lockers" active={path === "/lockers"} />
+          </>
+        ) : (
+          <>
+            <SidebarItem icon={Compass} label="Para ti" to="/" active={path === "/"} />
+            <SidebarItem icon={LayoutGrid} label="Descubrir" to="/descubrir" active={path === "/descubrir"} />
+            <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} />
+            <SidebarItem icon={ShoppingCart} label="Carrito" to="/carrito" active={path === "/carrito"} badge={cartCount} />
+            {user && <SidebarItem icon={Receipt} label="Mis pedidos" to="/pedidos" active={path === "/pedidos"} />}
+            <SidebarItem icon={Lock} label="Lockers" to="/lockers" active={path === "/lockers"} />
+          </>
+        )}
         <SidebarItem
           icon={User}
           label="Mi cuenta"
@@ -145,7 +206,7 @@ export default function SiteSidebar() {
             style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
           >
             <Plus size={16} strokeWidth={2.6} />
-            <span className="hidden lg:inline">{user?.storeSlug ? "Mi tienda" : "Vender en Nexo"}</span>
+            <span className="hidden lg:inline">{user?.storeSlug ? (storeMode ? "Nueva publicación" : "Mi tienda") : "Vender en Nexo"}</span>
           </Link>
         </motion.div>
       </div>
