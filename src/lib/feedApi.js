@@ -43,6 +43,8 @@ function mapReviewItem(row) {
     storeSlug: product?.stores?.slug,
     storeAvatarUrl: product?.stores?.avatar_url ?? undefined,
     productId: product?.id,
+    productName: product?.name,
+    price: product?.price != null ? formatPrice(product.price) : undefined,
     caption: row.quote,
     imageUrl: product?.image_url ?? undefined,
     likes: 0,
@@ -93,7 +95,7 @@ export async function fetchFeedItems(currentUserId) {
       .limit(40),
     supabase
       .from("reviews")
-      .select("id, quote, created_at, profiles(id, name, initials), products(id, image_url, stores(name, slug, avatar_url))")
+      .select("id, quote, created_at, profiles(id, name, initials), products(id, name, price, image_url, stores(name, slug, avatar_url))")
       .order("created_at", { ascending: false })
       .limit(40),
     supabase

@@ -16,7 +16,7 @@ export const LEGAL_DOCS = {
       },
       {
         heading: "3. Compras y pagos",
-        body: "Al confirmar un pedido se registra tu compra con la tienda. Mientras la pasarela de pagos real no esté habilitada, los pagos dentro de Nexo son una simulación y no se cobra dinero. Nexo cobra a las tiendas una comisión por venta.",
+        body: "Al confirmar un pedido se registra tu compra con la tienda. Mientras la pasarela de pagos real no esté habilitada, los pagos dentro de Nexo son una simulación y no se cobra dinero. Nexo cobra a las tiendas una comisión del 8 % por venta y a los compradores una comisión por compra segura de S/ 1.90 por pedido, que se suma al total.",
       },
       {
         heading: "4. Contenido",

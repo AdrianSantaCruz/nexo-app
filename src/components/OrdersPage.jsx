@@ -4,7 +4,6 @@ import { Receipt } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import * as ordersApi from "../lib/ordersApi";
 import * as cartApi from "../lib/cartApi";
-import * as pickupApi from "../lib/pickupApi";
 import OrderCard from "./OrderCard";
 import PaymentModal from "./PaymentModal";
 import { EmptyState, Reveal, Skeleton } from "./ui/Motion";
@@ -54,7 +53,11 @@ export default function OrdersPage() {
     );
   }
 
-  const payingTotal = groups.filter((g) => g.orderId === payingOrderId).reduce((sum, g) => sum + g.subtotal, 0);
+  const payingGroups = groups.filter((g) => g.orderId === payingOrderId);
+  const payingTotal = payingGroups.reduce((sum, g) => sum + g.subtotal, 0) + (payingGroups[0]?.buyerFee ?? 0);
+  // La comisión por compra segura es una por pedido: se muestra en la primera tienda de cada pedido.
+  const feeCarrier = new Map();
+  for (const g of groups) if (!feeCarrier.has(g.orderId)) feeCarrier.set(g.orderId, g.id);
 
   const cancel = async (group) => {
     if (!window.confirm(`¿Cancelar tu pedido en ${group.storeName}? Se devolverá el stock a la tienda.`)) return;
@@ -64,18 +67,6 @@ export default function OrdersPage() {
       reload();
     } catch {
       window.alert("No se pudo cancelar: puede que la tienda ya haya empezado a prepararlo.");
-    } finally {
-      setBusyId(null);
-    }
-  };
-
-  const confirmPickup = async (group) => {
-    setBusyId(group.id);
-    try {
-      await pickupApi.confirmPickup(group.id);
-      reload();
-    } catch {
-      window.alert("No se pudo confirmar. Inténtalo de nuevo.");
     } finally {
       setBusyId(null);
     }
@@ -114,10 +105,10 @@ export default function OrdersPage() {
               group={g}
               index={i}
               mode="buyer"
+              buyerFee={feeCarrier.get(g.orderId) === g.id ? g.buyerFee : 0}
               busy={busyId === g.id}
               onCancel={() => cancel(g)}
               onPay={() => setPayingOrderId(g.orderId)}
-              onConfirmPickup={() => confirmPickup(g)}
             />
           ))}
         </div>

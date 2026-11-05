@@ -61,6 +61,11 @@ export default function SalesPage() {
     }
   };
 
+  const deliverWithCode = async (group, code) => {
+    await ordersApi.deliverWithCode(group.id, code);
+    setReloadKey((k) => k + 1);
+  };
+
   const loaded = loadedSlug === storeSlug && data;
   const toCollect = loaded ? data.groups.filter((g) => g.status !== "cancelado").reduce((s, g) => s + g.payout, 0) : 0;
 
@@ -102,12 +107,12 @@ export default function SalesPage() {
               {formatSoles(toCollect)}
             </p>
             <p className="text-xs mt-1.5 leading-relaxed" style={{ color: COLOR.muted }}>
-              Después de la comisión de Nexo (10%).
+              Después de la comisión de Nexo (8 %).
             </p>
           </motion.div>
 
           {data.groups.map((g, i) => (
-            <OrderCard key={g.id} group={g} index={i} mode="seller" busy={busyId === g.id} onStatus={(s) => changeStatus(g, s)} />
+            <OrderCard key={g.id} group={g} index={i} mode="seller" busy={busyId === g.id} onStatus={(s) => changeStatus(g, s)} onDeliverWithCode={(code) => deliverWithCode(g, code)} />
           ))}
         </div>
       )}

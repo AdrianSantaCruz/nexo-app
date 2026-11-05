@@ -78,6 +78,17 @@ export async function removeCartItem(cartItemId) {
   if (error) throw error;
 }
 
+// Comisión por compra segura que se suma al total del comprador (una vez por
+// pedido). El valor real viene de app_settings (migration 17); si no se puede
+// leer se usa el valor por defecto.
+export const DEFAULT_BUYER_FEE = 1.9;
+
+export async function fetchBuyerFee() {
+  const { data } = await supabase.from("app_settings").select("value").eq("key", "buyer_fee").maybeSingle();
+  const fee = Number(data?.value);
+  return Number.isFinite(fee) ? fee : DEFAULT_BUYER_FEE;
+}
+
 // Crea el pedido del carrito del usuario. `deliveryMethod` es "locker" (con
 // `pickupPointId`) o "coordinar". Si no alcanza el stock lanza un error con
 // `code === "SIN_STOCK"` y `productName`.

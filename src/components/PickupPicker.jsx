@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { MapPin, MessageCircle, Lock, Clock } from "lucide-react";
+import { MapPin, MessageCircle, Lock, Clock, TriangleAlert, KeyRound } from "lucide-react";
 import { EASE_OUT, SPRING, SPRING_SOFT } from "../lib/motionConfig";
 import { Skeleton } from "./ui/Motion";
 
@@ -128,12 +128,41 @@ export default function PickupPicker({ method, onMethod, points, status, selecte
             className="overflow-hidden"
           >
             <p className="text-xs mt-4 mb-2" style={{ color: COLOR.muted }}>
-              Elige el locker donde la tienda dejará tu pedido. Te daremos un código de apertura cuando esté listo.
+              Elige el locker donde la tienda dejará tu pedido. Lo retirarás digitando tu código de pedido en el locker.
             </p>
             <div className="flex flex-col gap-2">
               {points.map((p) => (
                 <LockerCard key={p.id} point={p} selected={selectedId === p.id} onSelect={onSelect} disabled={disabled} />
               ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence initial={false}>
+        {current === "coordinar" && (
+          <motion.div
+            key="warning"
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: "auto" }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={SPRING_SOFT}
+            className="overflow-hidden"
+          >
+            <div className="mt-4 flex items-start gap-2.5 rounded-xl p-3.5" style={{ backgroundColor: "rgba(245,194,66,0.08)", border: "1px solid rgba(245,194,66,0.35)" }}>
+              <TriangleAlert size={18} className="shrink-0 mt-0.5" style={{ color: "#F5C242" }} />
+              <div>
+                <p className="text-sm font-semibold" style={{ color: "#F5C242" }}>
+                  Sin respaldo de Nexo para quejas
+                </p>
+                <p className="text-xs mt-1 leading-relaxed" style={{ color: COLOR.hueso }}>
+                  Si coordinas la entrega directamente con la tienda, Nexo no podrá atender quejas ni reclamos de este pedido. Para tener respaldo, recoge en un locker Nexo.
+                </p>
+                <p className="text-xs mt-2 leading-relaxed flex items-start gap-1.5" style={{ color: COLOR.muted }}>
+                  <KeyRound size={13} className="shrink-0 mt-0.5" />
+                  Tendrás un código de pedido: entrégaselo al vendedor solo cuando recibas tu pedido, para que pueda marcarlo como entregado.
+                </p>
+              </div>
             </div>
           </motion.div>
         )}

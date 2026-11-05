@@ -207,6 +207,11 @@ export default function StorePanelPage() {
     }
   };
 
+  const deliverWithCode = async (group, code) => {
+    await ordersApi.deliverWithCode(group.id, code);
+    setReloadKey((k) => k + 1);
+  };
+
   const lowStock = loaded ? data.store.products.filter((p) => p.stock <= 3).sort((a, b) => a.stock - b.stock) : [];
 
   return (
@@ -256,7 +261,7 @@ export default function StorePanelPage() {
               <Kpi icon={BellRing} label="Por atender" value={stats.toAttend.length} hint="Pagados, listos para preparar" accent={stats.toAttend.length > 0} to={`/ventas/${slug}`} />
             </StaggerItem>
             <StaggerItem>
-              <Kpi icon={Banknote} label="Por cobrar" value={formatSoles(stats.payout)} hint="Después de la comisión (10%)" />
+              <Kpi icon={Banknote} label="Por cobrar" value={formatSoles(stats.payout)} hint="Después de la comisión (8 %)" />
             </StaggerItem>
             <StaggerItem>
               <Kpi icon={TrendingUp} label="Ventas" value={stats.sold.length} hint={`Ticket promedio ${formatSoles(Math.round(stats.ticket * 100) / 100)}`} />
@@ -292,7 +297,7 @@ export default function StorePanelPage() {
             ) : (
               <div className="flex flex-col gap-3">
                 {stats.toAttend.slice(0, 3).map((g, i) => (
-                  <OrderCard key={g.id} group={g} index={i} mode="seller" busy={busyId === g.id} onStatus={(s) => changeStatus(g, s)} />
+                  <OrderCard key={g.id} group={g} index={i} mode="seller" busy={busyId === g.id} onStatus={(s) => changeStatus(g, s)} onDeliverWithCode={(code) => deliverWithCode(g, code)} />
                 ))}
                 {stats.toAttend.length > 3 && (
                   <p className="text-xs text-center" style={{ color: COLOR.muted }}>

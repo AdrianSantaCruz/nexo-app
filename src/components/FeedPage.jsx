@@ -25,6 +25,7 @@ import { deletePost, likePost, unlikePost } from "../lib/postsApi";
 import { useAuth } from "../context/authContext";
 import { EASE_OUT, SPRING, SPRING_BOUNCY } from "../lib/motionConfig";
 import PostCommentsModal from "./PostCommentsModal";
+import QuickBuySheet from "./QuickBuySheet";
 import ReportModal from "./ReportModal";
 import { EmptyState } from "./ui/Motion";
 
@@ -76,7 +77,7 @@ function ActionButton({ icon: Icon, count, active, onClick, fillWhenActive, labe
 // Cada publicación ocupa toda la altura disponible bajo el encabezado (como
 // la versión web de TikTok/Instagram: una columna centrada, con la página
 // scrolleando de verdad — no una caja fija en miniatura).
-function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onOpenComments, onOpenMenu }) {
+function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onOpenComments, onOpenMenu, onBuy }) {
   const isProduct = post.kind === "producto";
   const isPost = post.kind === "publicacion";
   const [showProducts, setShowProducts] = useState(false);
@@ -189,9 +190,12 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
               </div>
               {taggedProducts.map((p, i) => (
                 <motion.div key={p.id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.05 * i }}>
-                  <Link
-                    to={`/tienda/${post.storeSlug}/producto/${p.id}`}
-                    className="flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors"
+                  <button
+                    onClick={() => {
+                      setShowProducts(false);
+                      onBuy(p.id);
+                    }}
+                    className="w-full text-left flex items-center gap-2.5 px-3.5 py-2.5 hover:bg-white/5 transition-colors"
                     style={{ borderBottom: `1px solid ${COLOR.border}` }}
                   >
                     <div className="w-10 h-10 rounded-lg overflow-hidden shrink-0" style={{ backgroundColor: COLOR.surface }}>
@@ -205,8 +209,11 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
                         {p.price}
                       </p>
                     </div>
-                    <ArrowRight size={14} style={{ color: COLOR.lima }} />
-                  </Link>
+                    <span className="shrink-0 flex items-center gap-1 rounded-full px-2.5 py-1 text-[11px] font-bold" style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}>
+                      <ShoppingBag size={11} />
+                      Comprar
+                    </span>
+                  </button>
                 </motion.div>
               ))}
             </motion.div>
@@ -261,18 +268,38 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
             {post.caption}
           </p>
 
+          {post.kind === "review" && post.productId && (
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.97 }}
+              onClick={() => onBuy(post.productId)}
+              className="nexo-glow mt-3 flex items-center gap-2.5 rounded-2xl pl-3 pr-3.5 py-2.5 max-w-full text-left"
+              style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
+            >
+              <ShoppingBag size={16} className="shrink-0" />
+              <span className="min-w-0">
+                <span className="block text-[11px] font-medium leading-none opacity-70">Comprar este producto</span>
+                <span className="block text-sm font-bold truncate mt-0.5">
+                  {post.productName ?? "Ver producto"}
+                  {post.price && ` · ${post.price}`}
+                </span>
+              </span>
+              <ArrowRight size={15} className="shrink-0" />
+            </motion.button>
+          )}
+
           {isProduct && post.productId && (
             <motion.div whileHover={{ y: -2 }} whileTap={{ scale: 0.97 }} className="inline-block mt-3">
-              <Link
-                to={`/tienda/${post.storeSlug}/producto/${post.productId}`}
+              <button
+                onClick={() => onBuy(post.productId)}
                 className="nexo-glow inline-flex items-center gap-2.5 rounded-full pl-4 pr-3.5 py-2.5 text-sm font-bold"
                 style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
               >
                 {post.price}
                 <span className="w-px h-3.5" style={{ backgroundColor: "rgba(11,10,9,0.3)" }} />
-                <span className="font-semibold">Ver producto</span>
-                <ArrowRight size={15} />
-              </Link>
+                <span className="font-semibold">Comprar</span>
+                <ShoppingBag size={15} />
+              </button>
             </motion.div>
           )}
 
@@ -280,7 +307,7 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
             <motion.button
               whileHover={{ y: -2 }}
               whileTap={{ scale: 0.97 }}
-              onClick={() => setShowProducts(true)}
+              onClick={() => (taggedProducts.length === 1 ? onBuy(taggedProducts[0].id) : setShowProducts(true))}
               className="nexo-glow mt-3 inline-flex items-center gap-2 rounded-full px-4 py-2.5 text-sm font-semibold"
               style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
             >
@@ -315,6 +342,7 @@ export default function FeedPage() {
   const [commentsPostId, setCommentsPostId] = useState(null);
   const [menuPost, setMenuPost] = useState(null);
   const [reportTarget, setReportTarget] = useState(null);
+  const [buyProductId, setBuyProductId] = useState(null);
   const scrollRef = useRef(null);
   const userId = user?.id;
   const who = userId ?? "anon";
@@ -439,6 +467,7 @@ export default function FeedPage() {
               onToggleLike={() => toggleLike(post)}
               onOpenComments={() => setCommentsPostId(post.postId)}
               onOpenMenu={() => setMenuPost(post)}
+              onBuy={setBuyProductId}
             />
           ))
         ) : (
@@ -524,6 +553,8 @@ export default function FeedPage() {
       </AnimatePresence>
 
       {reportTarget && <ReportModal target={reportTarget} onClose={() => setReportTarget(null)} />}
+
+      <AnimatePresence>{buyProductId && <QuickBuySheet key={buyProductId} productId={buyProductId} onClose={() => setBuyProductId(null)} />}</AnimatePresence>
 
       {commentsPostId && (
         <PostCommentsModal

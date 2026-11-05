@@ -87,6 +87,25 @@ export async function fetchStoreBySlug(slug) {
   return data ? mapStore(data) : null;
 }
 
+// Un producto suelto (con variantes y datos de su tienda), para comprarlo
+// directo desde el Feed sin abrir la tienda.
+export async function fetchProductById(productId) {
+  const { data, error } = await supabase
+    .from("products")
+    .select("*, product_variants(*), stores(id, name, slug, owner_id)")
+    .eq("id", productId)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data) return null;
+  return {
+    ...mapProduct(data),
+    storeId: data.stores?.id ?? data.store_id,
+    storeName: data.stores?.name ?? "Tienda",
+    storeSlug: data.stores?.slug,
+    storeOwnerId: data.stores?.owner_id,
+  };
+}
+
 // Escucha en tiempo real los cambios de stock de los productos de una tienda
 // (cada venta o edición del vendedor llega al instante a quien esté mirando).
 export function subscribeToStoreStock(storeId, onChange) {

@@ -111,6 +111,7 @@ export default function CartPage() {
   const navigate = useNavigate();
   const [paying, setPaying] = useState(false);
   const [frozenTotal, setFrozenTotal] = useState(0);
+  const [buyerFee, setBuyerFee] = useState(cartApi.DEFAULT_BUYER_FEE);
   // Si el pedido se creó pero el pago falló, se reintenta el pago de ESE pedido.
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [error, setError] = useState("");
@@ -122,6 +123,10 @@ export default function CartPage() {
 
   useEffect(() => {
     let cancelled = false;
+    cartApi
+      .fetchBuyerFee()
+      .then((fee) => !cancelled && setBuyerFee(fee))
+      .catch(() => undefined);
     pickupApi
       .fetchPickupPoints()
       .then((data) => {
@@ -165,6 +170,7 @@ export default function CartPage() {
     byStore.get(key).items.push(item);
   }
   const total = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
+  const grandTotal = Math.round((total + buyerFee) * 100) / 100;
   const hasStockProblem = items.some((i) => i.product.stock < i.quantity);
   const lockersAvailable = pointsStatus === "ready" && points.length > 0;
   const effectiveMethod = lockersAvailable ? deliveryMethod : "coordinar";
@@ -183,7 +189,7 @@ export default function CartPage() {
 
   const openPayment = () => {
     setError("");
-    setFrozenTotal(total);
+    setFrozenTotal(grandTotal);
     setPaying(true);
   };
 
@@ -266,13 +272,21 @@ export default function CartPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2, duration: 0.4, ease: EASE_OUT }}
       >
-        <div className="flex items-baseline justify-between">
+        <div className="flex items-baseline justify-between text-sm" style={{ color: COLOR.muted }}>
+          <span>Subtotal</span>
+          <span style={{ color: COLOR.hueso }}>{formatSoles(total)}</span>
+        </div>
+        <div className="flex items-baseline justify-between text-sm mt-1.5" style={{ color: COLOR.muted }}>
+          <span>Comisión por compra segura</span>
+          <span style={{ color: COLOR.hueso }}>+ {formatSoles(buyerFee)}</span>
+        </div>
+        <div className="flex items-baseline justify-between mt-3 pt-3" style={{ borderTop: `1px solid ${COLOR.border}` }}>
           <span className="text-sm" style={{ color: COLOR.muted }}>
             Total
           </span>
           <AnimatePresence mode="popLayout" initial={false}>
             <motion.span
-              key={total}
+              key={grandTotal}
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 10 }}
@@ -280,7 +294,7 @@ export default function CartPage() {
               className="text-3xl font-bold"
               style={{ color: COLOR.hueso }}
             >
-              {formatSoles(total)}
+              {formatSoles(grandTotal)}
             </motion.span>
           </AnimatePresence>
         </div>
@@ -314,7 +328,11 @@ export default function CartPage() {
       {paying && (
         <PaymentModal
           total={frozenTotal}
-          note={effectiveMethod === "locker" && chosenPoint ? `Recogerás tu pedido en ${chosenPoint.name}. Te daremos un código de apertura cuando la tienda lo deje allí.` : undefined}
+          note={
+            effectiveMethod === "locker" && chosenPoint
+              ? `Recogerás tu pedido en ${chosenPoint.name}. Tu código de pedido está en Mis pedidos: lo digitarás en el locker para retirarlo.`
+              : "Recuerda: coordinar la entrega con la tienda no tiene respaldo de Nexo para quejas. Tu código de pedido está en Mis pedidos: dáselo al vendedor solo cuando recibas tu pedido."
+          }
           onPay={handlePay}
           onClose={() => setPaying(false)}
           onDone={() => {
