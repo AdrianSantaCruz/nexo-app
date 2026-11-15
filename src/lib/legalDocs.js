@@ -41,7 +41,7 @@ export const LEGAL_DOCS = {
     sections: [
       {
         heading: "1. Qué datos recopilamos",
-        body: "Correo electrónico, nombre, foto de perfil y biografía que decidas agregar; tus pedidos, carrito, reseñas, comentarios, likes y seguidores; los mensajes de chat con tiendas; y el contenido (fotos y videos) que subas.",
+        body: "Correo electrónico, nombre, foto de perfil y biografía que decidas agregar; tus pedidos, carrito, reseñas, comentarios, likes y seguidores; los mensajes de chat con tiendas; y el contenido (fotos y videos) que subas. Si quieres vender, también te pedimos tu número de DNI o RUC, tu nombre o razón social y una foto de tu DNI para verificar tu identidad; estos datos se guardan de forma privada, solo los revisa el equipo de Nexo y no se muestran a otros usuarios.",
       },
       {
         heading: "2. Para qué los usamos",

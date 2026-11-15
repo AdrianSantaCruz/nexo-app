@@ -37,13 +37,14 @@ function mapCartItem(row) {
           storeId: p.store_id,
           storeName: p.stores?.name,
           storeSlug: p.stores?.slug,
+          storeVerified: p.stores?.verified ?? true,
         }
       : null,
   };
 }
 
 const CART_SELECT =
-  "*, products(id, name, price, stock, options, image_url, store_id, stores(name, slug), product_variants(option_values, price))";
+  "*, products(id, name, price, stock, options, image_url, store_id, stores(name, slug, verified), product_variants(option_values, price))";
 
 export async function fetchCart(buyerId) {
   const { data, error } = await supabase.from("cart_items").select(CART_SELECT).eq("buyer_id", buyerId).order("created_at", { ascending: true });
@@ -97,6 +98,11 @@ export async function checkout({ deliveryMethod = "coordinar", pickupPointId = n
   const params = deliveryMethod === "locker" ? { p_delivery: "locker", p_pickup_point: pickupPointId } : undefined;
   const { data, error } = await supabase.rpc("create_order", params);
   if (error) {
+    if (/TIENDA_NO_VERIFICADA/.test(error.message ?? "")) {
+      const err = new Error("Tienda no verificada");
+      err.code = "TIENDA_NO_VERIFICADA";
+      throw err;
+    }
     const match = /SIN_STOCK:(.*)/.exec(error.message ?? "");
     if (match) {
       const err = new Error("Sin stock suficiente");

@@ -17,6 +17,7 @@ import LegalPage from './components/LegalPage'
 import LockersPage from './components/LockersPage'
 import StorePanelPage from './components/StorePanelPage'
 import StorePostsPage from './components/StorePostsPage'
+import SellerVerificationPage from './components/SellerVerificationPage'
 
 function App() {
   return (
@@ -39,6 +40,7 @@ function App() {
         <Route path="/ventas/:storeSlug" element={<SalesPage />} />
         <Route path="/lockers" element={<LockersPage />} />
         <Route path="/panel" element={<StorePanelPage />} />
+        <Route path="/verificacion" element={<SellerVerificationPage />} />
         <Route path="/panel/publicaciones" element={<StorePostsPage />} />
         <Route path="/ajustes" element={<SettingsPage />} />
         <Route path="/legal/:doc" element={<LegalPage />} />

@@ -1,7 +1,7 @@
 import { useState, useEffect, createContext, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag, Film, Flag, Banknote } from "lucide-react";
+import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag, Film, Flag, Banknote, ShieldAlert } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
 import * as storesApi from "../lib/storesApi";
@@ -379,6 +379,7 @@ function ProfileEditor({ store, accent, onSave, onCancel }) {
 // ---------------------------------------------------------------------------
 function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestion, onSaveProfile, onAddProduct, onEditProduct, onDeleteProduct }) {
   const [activeSection, setActiveSection] = useState("productos");
+  const navigate = useNavigate();
   const [isEditingProfile, setIsEditingProfile] = useState(false);
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [postConfirmation, setPostConfirmation] = useState(false);
@@ -399,6 +400,26 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
 
   return (
     <div className="max-w-[1800px] mx-auto w-full">
+      {!store.verified && (
+        <div
+          className="mx-4 md:mx-0 mt-4 flex items-start gap-2.5 rounded-xl p-3"
+          style={{ backgroundColor: "rgba(245,194,66,0.08)", border: "1px solid rgba(245,194,66,0.3)" }}
+        >
+          <ShieldAlert size={16} className="shrink-0 mt-0.5" style={{ color: "#F5C242" }} />
+          <p className="text-xs leading-relaxed" style={{ color: COLOR.hueso }}>
+            {isOwner ? (
+              <>
+                Tu tienda aún no está verificada: no puedes publicar ni recibir pedidos.{" "}
+                <Link to="/verificacion" className="font-semibold underline" style={{ color: "#F5C242" }}>
+                  Ver el estado de mi verificación
+                </Link>
+              </>
+            ) : (
+              "Esta tienda está en proceso de verificación de identidad. Todavía no se pueden hacer compras en ella."
+            )}
+          </p>
+        </div>
+      )}
       <div
         className="h-32 md:h-64 relative rounded-b-2xl md:rounded-2xl md:mt-6"
         style={{ backgroundColor: store.bannerColor, borderBottom: `2px solid ${accent}` }}
@@ -411,9 +432,10 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
         {isOwner && !isEditingProfile && (
           <div className="absolute right-3 top-3 md:right-6 md:top-6 flex items-center gap-2 z-10">
             <button
-              onClick={() => setIsCreatingPost(true)}
+              onClick={() => (store.verified ? setIsCreatingPost(true) : navigate("/verificacion"))}
               className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2"
-              style={{ backgroundColor: accent, color: COLOR.negro }}
+              style={{ backgroundColor: accent, color: COLOR.negro, opacity: store.verified ? 1 : 0.6 }}
+              title={store.verified ? undefined : "Verifica tu identidad para publicar"}
             >
               <Film size={12} />
               <span className="text-[11px] font-medium">Nueva publicación</span>
@@ -587,7 +609,7 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
 // Ventana flotante (no ocupa toda la pantalla): nombre, descripción,
 // opciones (solo si existen), reseñas de ESE producto, y botón para
 // preguntar por él puntualmente — salvo que seas tú mismo el vendedor.
-function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwner, onEditProduct }) {
+function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwner, onEditProduct, storeVerified = true }) {
   const { user } = useAuth();
   const cart = useCart();
   const navigate = useNavigate();
@@ -662,7 +684,7 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
   const displayImageUrl = optionImageUrl || product.imageUrl;
   const outOfStock = product.stock === 0;
   const effectiveQuantity = Math.max(1, Math.min(quantity, product.stock));
-  const canAddToCart = (!hasOptions || allOptionsSelected) && !outOfStock;
+  const canAddToCart = (!hasOptions || allOptionsSelected) && !outOfStock && storeVerified;
 
   const handleAddToCart = async () => {
     if (!user) {
@@ -856,7 +878,7 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
                 style={{ backgroundColor: accent, color: COLOR.negro }}
               >
                 <ShoppingCart size={15} />
-                {outOfStock ? "Agotado" : added ? "Agregado ✓" : adding ? "Agregando..." : "Agregar al carrito"}
+                {!storeVerified ? "Tienda en verificación" : outOfStock ? "Agotado" : added ? "Agregado ✓" : adding ? "Agregando..." : "Agregar al carrito"}
               </button>
               <button
                 onClick={onAskQuestion}
@@ -1051,6 +1073,7 @@ export default function StorePage() {
 
       {selectedProduct && (
         <ProductDetail
+          storeVerified={store.verified}
           product={selectedProduct}
           reviews={store.reviews}
           accent={accent}

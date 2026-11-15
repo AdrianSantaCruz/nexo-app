@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, BellRing, ChevronRight, Clapperboard, Lock, Package, Plus, Receipt, ShoppingBag, Store, TrendingUp, TriangleAlert } from "lucide-react";
+import { Banknote, BellRing, ShieldAlert, ChevronRight, Clapperboard, Lock, Package, Plus, Receipt, ShoppingBag, Store, TrendingUp, TriangleAlert } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import * as storesApi from "../lib/storesApi";
 import * as ordersApi from "../lib/ordersApi";
@@ -256,6 +256,19 @@ export default function StorePanelPage() {
         </div>
       ) : (
         <div className="flex flex-col gap-4">
+          {!data.store.verified && (
+            <Link
+              to="/verificacion"
+              className="flex items-start gap-2.5 rounded-2xl p-4"
+              style={{ backgroundColor: "rgba(245,194,66,0.08)", border: "1px solid rgba(245,194,66,0.3)" }}
+            >
+              <ShieldAlert size={18} className="shrink-0 mt-0.5" style={{ color: "#F5C242" }} />
+              <span className="text-sm leading-relaxed" style={{ color: COLOR.hueso }}>
+                <b style={{ color: "#F5C242" }}>Verifica tu identidad para vender.</b> Hasta que revisemos tu DNI o RUC no puedes publicar ni recibir pedidos. Toca aquí para ver el estado o completar tus datos.
+              </span>
+            </Link>
+          )}
+
           <Stagger className="grid grid-cols-2 md:grid-cols-4 gap-3">
             <StaggerItem>
               <Kpi icon={BellRing} label="Por atender" value={stats.toAttend.length} hint="Pagados, listos para preparar" accent={stats.toAttend.length > 0} to={`/ventas/${slug}`} />
@@ -367,7 +380,7 @@ export default function StorePanelPage() {
             icon={Clapperboard}
             action={
               <div className="flex items-center gap-4">
-                <button onClick={() => setCreating(true)} className="flex items-center gap-1 text-xs font-medium hover:underline" style={{ color: COLOR.lima }}>
+                <button onClick={() => setCreating(true)} disabled={!data.store.verified} className="flex items-center gap-1 text-xs font-medium hover:underline disabled:opacity-40 disabled:no-underline" style={{ color: COLOR.lima }}>
                   <Plus size={13} />
                   Nueva
                 </button>

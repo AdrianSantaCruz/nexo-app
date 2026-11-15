@@ -172,6 +172,8 @@ export default function CartPage() {
   const total = items.reduce((sum, i) => sum + i.unitPrice * i.quantity, 0);
   const grandTotal = Math.round((total + buyerFee) * 100) / 100;
   const hasStockProblem = items.some((i) => i.product.stock < i.quantity);
+  const unverifiedStores = [...new Set(items.filter((i) => !i.product.storeVerified).map((i) => i.product.storeName))];
+  const hasUnverified = unverifiedStores.length > 0;
   const lockersAvailable = pointsStatus === "ready" && points.length > 0;
   const effectiveMethod = lockersAvailable ? deliveryMethod : "coordinar";
   const needsLocker = effectiveMethod === "locker" && !pickupPointId;
@@ -199,6 +201,12 @@ export default function CartPage() {
       try {
         orderId = await cartApi.checkout({ deliveryMethod: effectiveMethod, pickupPointId: effectiveMethod === "locker" ? pickupPointId : null });
       } catch (err) {
+        if (err.code === "TIENDA_NO_VERIFICADA") {
+          setPaying(false);
+          setError("Alguna tienda de tu carrito todavía no está verificada. Quita sus productos para continuar.");
+          await refresh();
+          throw new Error("Tienda no verificada", { cause: err });
+        }
         if (err.code === "SIN_STOCK") {
           setPaying(false);
           setError(`Ya no hay stock suficiente de "${err.productName}". Ajusta tu carrito e intenta de nuevo.`);
@@ -307,14 +315,19 @@ export default function CartPage() {
 
         <motion.button
           onClick={openPayment}
-          disabled={hasStockProblem || needsLocker}
-          whileHover={{ y: hasStockProblem || needsLocker ? 0 : -2 }}
+          disabled={hasStockProblem || needsLocker || hasUnverified}
+          whileHover={{ y: hasStockProblem || needsLocker || hasUnverified ? 0 : -2 }}
           whileTap={{ scale: 0.98 }}
           className="nexo-glow w-full rounded-full py-3.5 text-sm font-semibold mt-4 disabled:opacity-50"
           style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
         >
           Continuar al pago
         </motion.button>
+        {hasUnverified && (
+          <p className="text-[11px] text-center mt-2.5" style={{ color: "#FF8A65" }}>
+            {unverifiedStores.join(", ")} aún no {unverifiedStores.length > 1 ? "están verificadas" : "está verificada"}. Quita sus productos del carrito para continuar.
+          </p>
+        )}
         {needsLocker && (
           <p className="text-[11px] text-center mt-2.5" style={{ color: COLOR.lima }}>
             Elige el locker donde recogerás tu pedido para continuar.

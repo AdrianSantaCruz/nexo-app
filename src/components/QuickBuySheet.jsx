@@ -69,7 +69,8 @@ export default function QuickBuySheet({ productId, onClose }) {
   const outOfStock = product?.stock === 0;
   const qty = product ? Math.max(1, Math.min(quantity, product.stock)) : 1;
   const isOwn = Boolean(user && product && user.storeSlug && user.storeSlug === product.storeSlug);
-  const canBuy = Boolean(product) && !outOfStock && !isOwn && (!hasOptions || allSelected);
+  const unverified = Boolean(product) && !product.storeVerified;
+  const canBuy = Boolean(product) && !outOfStock && !isOwn && !unverified && (!hasOptions || allSelected);
 
   const addToCart = async (mode) => {
     if (!user) {
@@ -214,6 +215,10 @@ export default function QuickBuySheet({ productId, onClose }) {
               {isOwn ? (
                 <p className="text-xs" style={{ color: COLOR.muted }}>
                   Este es un producto de tu propia tienda.
+                </p>
+              ) : unverified ? (
+                <p className="text-xs leading-relaxed" style={{ color: COLOR.coral }}>
+                  Esta tienda está en proceso de verificación de identidad. Todavía no se pueden hacer compras en ella.
                 </p>
               ) : (
                 <>

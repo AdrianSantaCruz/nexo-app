@@ -92,7 +92,7 @@ export async function fetchStoreBySlug(slug) {
 export async function fetchProductById(productId) {
   const { data, error } = await supabase
     .from("products")
-    .select("*, product_variants(*), stores(id, name, slug, owner_id)")
+    .select("*, product_variants(*), stores(id, name, slug, owner_id, verified)")
     .eq("id", productId)
     .maybeSingle();
   if (error) throw error;
@@ -103,6 +103,7 @@ export async function fetchProductById(productId) {
     storeName: data.stores?.name ?? "Tienda",
     storeSlug: data.stores?.slug,
     storeOwnerId: data.stores?.owner_id,
+    storeVerified: data.stores?.verified ?? true,
   };
 }
 

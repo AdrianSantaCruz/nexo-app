@@ -3,6 +3,8 @@ import { Link, useNavigate } from "react-router-dom";
 import { AuthButton, AuthField, AuthShell } from "./ui/AuthKit";
 import { useAuth } from "../context/authContext";
 import { createStore, isSlugAvailable } from "../lib/storesApi";
+import { EMPTY_VERIFICATION, submitVerification, validateVerification } from "../lib/sellerVerificationApi";
+import VerificationFields from "./VerificationFields";
 
 const COLOR = {
   negro: "#0B0A09",
@@ -31,6 +33,7 @@ export default function CreateStorePage() {
   const [slug, setSlug] = useState("");
   const [slugEdited, setSlugEdited] = useState(false);
   const [description, setDescription] = useState("");
+  const [verification, setVerification] = useState(EMPTY_VERIFICATION);
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
@@ -68,6 +71,11 @@ export default function CreateStorePage() {
       setError("Completa el nombre de tu tienda.");
       return;
     }
+    const problem = validateVerification(verification);
+    if (problem) {
+      setError(problem);
+      return;
+    }
     setSubmitting(true);
     try {
       const available = await isSlugAvailable(cleanSlug);
@@ -76,9 +84,15 @@ export default function CreateStorePage() {
         setSubmitting(false);
         return;
       }
-      await createStore({ ownerId: user.id, name: name.trim(), description: description.trim(), slug: cleanSlug });
+      const store = await createStore({ ownerId: user.id, name: name.trim(), description: description.trim(), slug: cleanSlug });
       await refreshUser();
-      navigate(`/tienda/${cleanSlug}`);
+      try {
+        await submitVerification({ ownerId: user.id, storeId: store.id, ...verification });
+        navigate(`/tienda/${cleanSlug}`);
+      } catch {
+        // La tienda ya existe: se puede reenviar la verificación desde su página.
+        navigate("/verificacion");
+      }
     } catch {
       setError("No se pudo crear la tienda. Intenta de nuevo.");
       setSubmitting(false);
@@ -116,6 +130,11 @@ export default function CreateStorePage() {
 
         <AuthField label="Descripción" delay={0.1} as="textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
 
+        <p className="text-sm font-semibold mt-2" style={{ color: COLOR.hueso }}>
+          Verifica tu identidad
+        </p>
+        <VerificationFields value={verification} onChange={setVerification} />
+
         {error && (
           <p className="text-xs" style={{ color: "#FF8A65" }}>
             {error}
@@ -123,7 +142,7 @@ export default function CreateStorePage() {
         )}
 
         <AuthButton type="submit" loading={submitting}>
-          {submitting ? "Creando..." : "Crear tienda"}
+          {submitting ? "Creando..." : "Crear tienda y enviar verificación"}
         </AuthButton>
       </form>
     </AuthShell>

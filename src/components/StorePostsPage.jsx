@@ -134,7 +134,7 @@ export default function StorePostsPage() {
             whileHover={{ y: -2 }}
             whileTap={{ scale: 0.96 }}
             onClick={() => setCreating(true)}
-            disabled={!loaded}
+            disabled={!loaded || !data.store.verified}
             className="nexo-glow flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold disabled:opacity-50"
             style={{ backgroundColor: COLOR.lima, color: COLOR.negro }}
           >
@@ -143,6 +143,12 @@ export default function StorePostsPage() {
           </motion.button>
         </div>
       </Reveal>
+
+      {loaded && !data.store.verified && (
+        <Link to="/verificacion" className="block rounded-2xl p-4 mb-4 text-sm" style={{ backgroundColor: "rgba(245,194,66,0.08)", border: "1px solid rgba(245,194,66,0.3)", color: COLOR.hueso }}>
+          <b style={{ color: "#F5C242" }}>Verifica tu identidad para publicar.</b> Toca aquí para ver el estado de tu verificación.
+        </Link>
+      )}
 
       {error && !loaded ? (
         <EmptyState icon={Clapperboard} title="No pudimos cargar tus publicaciones" subtitle="Revisa tu conexión e inténtalo de nuevo." />
@@ -169,7 +175,7 @@ export default function StorePostsPage() {
         </Stagger>
       )}
 
-      {creating && loaded && data.store && (
+      {creating && loaded && data.store?.verified && (
         <PostCreateModal
           storeId={data.store.id}
           authorId={user.id}
