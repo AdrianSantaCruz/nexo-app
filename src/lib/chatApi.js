@@ -6,10 +6,16 @@ import { supabase } from "./supabaseClient";
 // como comprador (hablando con otras tiendas) y como vendedor (respondiendo
 // a compradores de su propia tienda) — `mapConversation` calcula quién es
 // "la otra persona" según el punto de vista de quien mira.
+//
+// Tiempo real:
+//  - `subscribeToInbox`: mensajes nuevos / vistos y conversaciones nuevas de
+//    TODAS las conversaciones del usuario (Realtime respeta las políticas RLS,
+//    así que solo llegan filas que esta persona puede leer).
+//  - `joinChatRoom`: "escribiendo…" y "en línea" de una conversación abierta.
 // ---------------------------------------------------------------------------
 
 function mapMessage(row) {
-  return { id: row.id, senderId: row.sender_id, text: row.text, createdAt: row.created_at };
+  return { id: row.id, senderId: row.sender_id, text: row.text, createdAt: row.created_at, readAt: row.read_at ?? null, conversationId: row.conversation_id };
 }
 
 function mapConversation(row, myUserId) {
@@ -25,23 +31,41 @@ function mapConversation(row, myUserId) {
     otherName: isBuyer ? row.stores?.name ?? "Tienda" : row.profiles?.name ?? "Comprador",
     otherInitials: isBuyer ? row.stores?.initials ?? "T" : row.profiles?.initials ?? "U",
     otherAvatarUrl: isBuyer ? row.stores?.avatar_url ?? undefined : undefined,
+    createdAt: row.created_at,
     messages,
     lastMessage: messages[messages.length - 1],
   };
 }
 
-const CONVERSATION_SELECT = "*, stores(name, slug, initials, avatar_url), profiles(name, initials), messages(id, sender_id, text, created_at)";
+// Con `read_at` (migration_19) y sin él, para que la web siga funcionando
+// aunque esa migración todavía no se haya corrido.
+const SELECT_V19 = "*, stores(name, slug, initials, avatar_url), profiles(name, initials), messages(id, conversation_id, sender_id, text, created_at, read_at)";
+const SELECT_BASE = "*, stores(name, slug, initials, avatar_url), profiles(name, initials), messages(id, conversation_id, sender_id, text, created_at)";
+
+async function selectConversations(build) {
+  const first = await build(SELECT_V19);
+  if (!first.error) return first;
+  return build(SELECT_BASE);
+}
+
+export function unreadCount(conversation, myUserId) {
+  return conversation.messages.filter((m) => m.senderId !== myUserId && !m.readAt).length;
+}
+
+export function activityStamp(conversation) {
+  return new Date(conversation.lastMessage?.createdAt ?? conversation.createdAt).getTime();
+}
 
 // Trae TODAS las conversaciones donde el usuario participa, ya sea como
 // comprador o como dueño de alguna tienda involucrada — un solo inbox.
 export async function fetchConversations(userId) {
-  const { data, error } = await supabase.from("conversations").select(CONVERSATION_SELECT).order("created_at", { ascending: false });
+  const { data, error } = await selectConversations((sel) => supabase.from("conversations").select(sel));
   if (error) throw error;
-  return (data ?? []).map((row) => mapConversation(row, userId));
+  return (data ?? []).map((row) => mapConversation(row, userId)).sort((a, b) => activityStamp(b) - activityStamp(a));
 }
 
 export async function fetchConversation(conversationId, userId) {
-  const { data, error } = await supabase.from("conversations").select(CONVERSATION_SELECT).eq("id", conversationId).maybeSingle();
+  const { data, error } = await selectConversations((sel) => supabase.from("conversations").select(sel).eq("id", conversationId).maybeSingle());
   if (error) throw error;
   return data ? mapConversation(data, userId) : null;
 }
@@ -76,16 +100,51 @@ export async function sendMessage(conversationId, senderId, text) {
   return mapMessage(data);
 }
 
-// Escucha mensajes nuevos de una conversación en tiempo real (Supabase
-// Realtime) — así si la otra persona escribe, aparece sin recargar.
-export function subscribeToMessages(conversationId, onInsert) {
+// Marca como vistos los mensajes que la otra persona te escribió. Si la
+// migración 19 aún no está aplicada, no hace nada (no es un error para el usuario).
+export async function markConversationRead(conversationId) {
+  const { error } = await supabase.rpc("mark_conversation_read", { p_conversation: conversationId });
+  return !error;
+}
+
+// Escucha TODO el chat del usuario en vivo: mensajes nuevos, mensajes vistos y
+// conversaciones nuevas. Devuelve la función para dejar de escuchar.
+export function subscribeToInbox(userId, { onMessage, onMessageUpdate, onConversation }) {
   const channel = supabase
-    .channel(`messages-${conversationId}`)
-    .on(
-      "postgres_changes",
-      { event: "INSERT", schema: "public", table: "messages", filter: `conversation_id=eq.${conversationId}` },
-      (payload) => onInsert(mapMessage(payload.new))
-    )
+    .channel(`inbox-${userId}`)
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "messages" }, (payload) => onMessage?.(mapMessage(payload.new)))
+    .on("postgres_changes", { event: "UPDATE", schema: "public", table: "messages" }, (payload) => onMessageUpdate?.(mapMessage(payload.new)))
+    .on("postgres_changes", { event: "INSERT", schema: "public", table: "conversations" }, (payload) => onConversation?.(payload.new.id))
     .subscribe();
   return () => supabase.removeChannel(channel);
+}
+
+// Sala en vivo de una conversación abierta: avisa cuando la otra persona está
+// escribiendo y si está en línea (presencia). Devuelve { notifyTyping, leave }.
+export function joinChatRoom(conversationId, userId, { onTyping, onPresence }) {
+  const channel = supabase.channel(`chat-room-${conversationId}`, { config: { presence: { key: userId }, broadcast: { self: false } } });
+  let lastSent = 0;
+
+  channel
+    .on("broadcast", { event: "typing" }, ({ payload }) => {
+      if (payload?.userId && payload.userId !== userId) onTyping?.(Boolean(payload.typing));
+    })
+    .on("presence", { event: "sync" }, () => {
+      const others = Object.keys(channel.presenceState()).filter((key) => key !== userId);
+      onPresence?.(others.length > 0);
+    })
+    .subscribe((status) => {
+      if (status === "SUBSCRIBED") channel.track({ at: Date.now() });
+    });
+
+  return {
+    // Se limita a un aviso cada 2 s mientras la persona sigue tecleando.
+    notifyTyping(typing = true) {
+      const now = Date.now();
+      if (typing && now - lastSent < 2000) return;
+      lastSent = typing ? now : 0;
+      channel.send({ type: "broadcast", event: "typing", payload: { userId, typing } });
+    },
+    leave: () => supabase.removeChannel(channel),
+  };
 }

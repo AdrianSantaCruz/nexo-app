@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Compass, LayoutGrid, MessageCircle, User, Plus, ShoppingCart, Receipt, Lock, LayoutDashboard, Package, Clapperboard, Store, ShoppingBag } from "lucide-react";
+import { Search, Compass, LayoutGrid, MessageCircle, Bell, User, Plus, ShoppingCart, Receipt, Lock, LayoutDashboard, Package, Clapperboard, Store, ShoppingBag } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import LogoMark from "./LogoMark";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
 import { useMode } from "../context/modeContext";
+import { useNotifications } from "../context/notificationsContext";
 import { SPRING, SPRING_BOUNCY } from "../lib/motionConfig";
 
 const COLOR = {
@@ -103,6 +104,7 @@ export default function SiteSidebar() {
   const { user } = useAuth();
   const { count: cartCount } = useCart();
   const { storeMode, hasStore, setStoreMode } = useMode();
+  const { bellCount, chatCount } = useNotifications();
   const sellCta = user ? (user.storeSlug ? (storeMode ? "/panel/publicaciones?nueva=1" : `/tienda/${user.storeSlug}`) : "/vender") : "/registro";
   const [query, setQuery] = useState("");
   const [searchFocused, setSearchFocused] = useState(false);
@@ -177,14 +179,16 @@ export default function SiteSidebar() {
             <SidebarItem icon={Receipt} label="Pedidos" to={`/ventas/${user.storeSlug}`} active={path.startsWith("/ventas")} />
             <SidebarItem icon={Package} label="Mi catálogo" to={`/tienda/${user.storeSlug}`} active={path.startsWith("/tienda")} />
             <SidebarItem icon={Clapperboard} label="Publicaciones" to="/panel/publicaciones" active={path === "/panel/publicaciones"} />
-            <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} />
+            <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} badge={chatCount} />
+            <SidebarItem icon={Bell} label="Notificaciones" to="/notificaciones" active={path === "/notificaciones"} badge={bellCount} />
             <SidebarItem icon={Lock} label="Lockers" to="/lockers" active={path === "/lockers"} />
           </>
         ) : (
           <>
             <SidebarItem icon={Compass} label="Para ti" to="/" active={path === "/"} />
             <SidebarItem icon={LayoutGrid} label="Descubrir" to="/descubrir" active={path === "/descubrir"} />
-            <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} />
+            <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} badge={chatCount} />
+            <SidebarItem icon={Bell} label="Notificaciones" to="/notificaciones" active={path === "/notificaciones"} badge={bellCount} />
             <SidebarItem icon={ShoppingCart} label="Carrito" to="/carrito" active={path === "/carrito"} badge={cartCount} />
             {user && <SidebarItem icon={Receipt} label="Mis pedidos" to="/pedidos" active={path === "/pedidos"} />}
             <SidebarItem icon={Lock} label="Lockers" to="/lockers" active={path === "/lockers"} />

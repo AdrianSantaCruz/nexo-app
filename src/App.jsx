@@ -18,6 +18,7 @@ import LockersPage from './components/LockersPage'
 import StorePanelPage from './components/StorePanelPage'
 import StorePostsPage from './components/StorePostsPage'
 import SellerVerificationPage from './components/SellerVerificationPage'
+import NotificationsPage from './components/NotificationsPage'
 
 function App() {
   return (
@@ -25,6 +26,7 @@ function App() {
       <Routes>
         <Route path="/" element={<FeedPage />} />
         <Route path="/descubrir" element={<DiscoverPage />} />
+        <Route path="/notificaciones" element={<NotificationsPage />} />
         <Route path="/chats" element={<ChatsPage />} />
         <Route path="/chats/:conversationId" element={<ChatsPage />} />
         <Route path="/tienda/:storeSlug" element={<StorePage />} />

@@ -1,6 +1,7 @@
 import { useLocation } from "react-router-dom";
 import SiteSidebar from "./SiteSidebar";
 import SiteFooter from "./SiteFooter";
+import NotificationToasts from "./NotificationToasts";
 import { PageTransition } from "./ui/Motion";
 
 // Páginas de pantalla completa (ocupan exactamente un viewport y manejan su
@@ -21,6 +22,7 @@ export default function SiteLayout({ children }) {
   return (
     <div className="min-h-screen flex">
       <SiteSidebar />
+      <NotificationToasts />
       <div className="flex-1 flex flex-col min-w-0 pl-16 lg:pl-56">
         <main className="flex-1 min-w-0">
           <PageTransition routeKey={section}>{children}</PageTransition>
