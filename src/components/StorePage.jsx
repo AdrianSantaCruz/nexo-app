@@ -1,7 +1,7 @@
-import { useState, useEffect, createContext, useContext } from "react";
+import { useState, useEffect, useRef, createContext, useContext } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
-import { motion } from "motion/react";
-import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Tag, Film, Flag, Banknote, ShieldAlert } from "lucide-react";
+import { AnimatePresence, animate, motion, useScroll, useTransform } from "motion/react";
+import { BadgeCheck, Pencil, X, MessageCircleQuestion, ShoppingCart, Minus, Plus, Trash2, ImagePlus, Check, Film, Flag, Banknote, ShieldAlert, ArrowUpRight, Flame, LayoutDashboard, Package, Quote, Search, Share2, Sparkles } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import { useCart } from "../context/cartContext";
 import * as storesApi from "../lib/storesApi";
@@ -11,7 +11,8 @@ import ProductEditModal from "./ProductEditModal";
 import PostCreateModal from "./PostCreateModal";
 import ReportModal from "./ReportModal";
 import * as reviewsApi from "../lib/reviewsApi";
-import { SPRING_SOFT } from "../lib/motionConfig";
+import { EASE_OUT, SPRING, SPRING_BOUNCY, SPRING_SOFT } from "../lib/motionConfig";
+import { Reveal } from "./ui/Motion";
 
 // ---------------------------------------------------------------------------
 // Paleta de marca (Nexo — Nero Labs): el negro es fijo (identidad de la app).
@@ -61,168 +62,231 @@ function AccentPicker({ value, onChange }) {
   );
 }
 
-function SectionTabs({ active, onChange }) {
+// Número que sube animado desde 0 (estadísticas de la portada).
+function CountUp({ value }) {
+  const ref = useRef(null);
+  useEffect(() => {
+    const controls = animate(0, value, {
+      duration: 1.1,
+      ease: EASE_OUT,
+      onUpdate: (v) => {
+        if (ref.current) ref.current.textContent = String(Math.round(v));
+      },
+    });
+    return () => controls.stop();
+  }, [value]);
+  return <span ref={ref}>0</span>;
+}
+
+// Pestañas pegadas arriba al hacer scroll, con una píldora que se desliza.
+function SectionTabs({ active, onChange, counts }) {
   const accent = useAccent();
   const tabs = [
-    { id: "productos", label: "Productos" },
-    { id: "resenas", label: "Reseñas" },
+    { id: "productos", label: "Productos", icon: Package },
+    { id: "resenas", label: "Reseñas", icon: Sparkles },
   ];
   return (
-    <div className="flex gap-2 px-4 md:px-8 pt-4 pb-1">
-      {tabs.map((t) => {
-        const isActive = active === t.id;
-        return (
-          <button
-            key={t.id}
-            onClick={() => onChange(t.id)}
-            className="rounded-full px-4 py-1.5 text-xs font-medium"
-            style={
-              isActive
-                ? { backgroundColor: accent, color: COLOR.negro }
-                : { backgroundColor: "transparent", color: COLOR.hueso, border: `1px solid ${COLOR.border}` }
-            }
-          >
-            {t.label}
-          </button>
-        );
-      })}
+    <div
+      className="sticky top-0 z-30 px-4 md:px-8 py-3"
+      style={{ backgroundColor: "rgba(11,10,9,0.82)", backdropFilter: "blur(14px)", borderBottom: `1px solid ${COLOR.border}` }}
+    >
+      <div className="flex gap-1 p-1 rounded-full w-fit" style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}>
+        {tabs.map((t) => {
+          const isActive = active === t.id;
+          const Icon = t.icon;
+          return (
+            <button key={t.id} onClick={() => onChange(t.id)} className="relative flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold">
+              {isActive && <motion.span layoutId="store-tab-pill" transition={SPRING} className="absolute inset-0 rounded-full" style={{ backgroundColor: accent }} />}
+              <span className="relative flex items-center gap-1.5" style={{ color: isActive ? COLOR.negro : COLOR.hueso }}>
+                <Icon size={13} />
+                {t.label}
+                <span
+                  className="min-w-[18px] h-[18px] px-1 rounded-full flex items-center justify-center text-[10px] font-bold"
+                  style={{ backgroundColor: isActive ? "rgba(11,10,9,0.15)" : COLOR.border, color: isActive ? COLOR.negro : COLOR.muted }}
+                >
+                  {counts[t.id]}
+                </span>
+              </span>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
 
-function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDelete }) {
+function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDelete, index = 0 }) {
   const accent = useAccent();
   const isSmall = size === "small";
   return (
     <motion.div
-      initial={{ opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      whileHover={{ y: -4, boxShadow: "0 14px 30px rgba(0,0,0,0.45)" }}
-      whileTap={{ scale: 0.98 }}
-      transition={SPRING_SOFT}
-      className={`relative rounded-xl overflow-hidden text-left ${isSmall ? "shrink-0 w-28 md:w-36" : "w-full"}`}
-      style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
+      initial={{ opacity: 0, y: 22 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "0px 0px -40px 0px" }}
+      transition={{ duration: 0.45, delay: Math.min(index, 8) * 0.045, ease: EASE_OUT }}
+      whileHover="hover"
+      whileTap={{ scale: 0.985 }}
+      className={`group relative ${isSmall ? "shrink-0 w-44 md:w-52" : "w-full"}`}
     >
-      {isOwner && (
-        <div className="absolute top-1.5 right-1.5 z-10 flex gap-1">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onEdit(product);
-            }}
-            className="w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(11,10,9,0.75)" }}
-          >
-            <Pencil size={11} style={{ color: COLOR.hueso }} />
-          </button>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              onDelete(product);
-            }}
-            className="w-6 h-6 rounded-full flex items-center justify-center"
-            style={{ backgroundColor: "rgba(11,10,9,0.75)" }}
-          >
-            <Trash2 size={11} style={{ color: "#FF8A65" }} />
-          </button>
-        </div>
-      )}
-      <button onClick={() => onOpen(product)} className="w-full text-left">
-        <div className="relative" style={{ height: isSmall ? 80 : 100, backgroundColor: product.color }}>
-          {product.imageUrl && (
-            <img src={product.imageUrl} alt={product.name} className="absolute inset-0 w-full h-full object-cover" />
-          )}
-          {product.stock === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: "rgba(11,10,9,0.7)" }}>
-              <span className="text-[11px] font-semibold" style={{ color: COLOR.hueso }}>
-                Agotado
-              </span>
-            </div>
-          )}
-          {product.stock > 0 && product.stock <= 5 && (
-            <div
-              className="absolute bottom-1.5 left-1.5 rounded-full px-1.5 py-0.5"
-              style={{ backgroundColor: "rgba(11,10,9,0.8)", border: "1px solid #FF8A65" }}
+      <motion.div
+        variants={{ hover: { y: -6 } }}
+        transition={SPRING_SOFT}
+        className="relative rounded-2xl overflow-hidden text-left h-full"
+        style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, transition: "box-shadow .3s, border-color .3s" }}
+        onMouseEnter={(e) => {
+          e.currentTarget.style.borderColor = `${accent}88`;
+          e.currentTarget.style.boxShadow = `0 22px 44px rgba(0,0,0,0.55), 0 0 0 1px ${accent}22, 0 0 28px ${accent}1f`;
+        }}
+        onMouseLeave={(e) => {
+          e.currentTarget.style.borderColor = COLOR.border;
+          e.currentTarget.style.boxShadow = "none";
+        }}
+      >
+        {isOwner && (
+          <div className="absolute top-2 right-2 z-10 flex gap-1.5">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit(product);
+              }}
+              aria-label="Editar producto"
+              className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-transform hover:scale-110"
+              style={{ backgroundColor: "rgba(11,10,9,0.7)" }}
             >
-              <span className="text-[9px] font-semibold" style={{ color: "#FF8A65" }}>
-                ¡Quedan {product.stock}!
-              </span>
-            </div>
-          )}
-          {product.isOffer && (
-            <div
-              className="absolute top-1.5 left-1.5 flex items-center gap-0.5 rounded-full px-1.5 py-0.5"
-              style={{ backgroundColor: accent }}
+              <Pencil size={13} style={{ color: COLOR.hueso }} />
+            </button>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(product);
+              }}
+              aria-label="Eliminar producto"
+              className="w-8 h-8 rounded-full flex items-center justify-center backdrop-blur-md transition-transform hover:scale-110"
+              style={{ backgroundColor: "rgba(11,10,9,0.7)" }}
             >
-              <Tag size={9} style={{ color: COLOR.negro }} />
-              <span className="text-[9px] font-semibold" style={{ color: COLOR.negro }}>
-                Oferta
-              </span>
-            </div>
-          )}
-        </div>
-        <div className="px-2.5 py-2">
-          <p className="text-[11px] leading-tight" style={{ color: COLOR.hueso }}>
-            {product.name}
-          </p>
-          <div className="flex items-baseline gap-1.5 mt-0.5">
-            <p className="text-xs font-semibold" style={{ color: accent }}>
-              {product.price}
-            </p>
-            {product.originalPrice && (
-              <p className="text-[10px] line-through" style={{ color: COLOR.muted }}>
-                {product.originalPrice}
-              </p>
-            )}
+              <Trash2 size={13} style={{ color: "#FF8A65" }} />
+            </button>
           </div>
-        </div>
-      </button>
+        )}
+        <button onClick={() => onOpen(product)} className="w-full text-left block">
+          <div className="relative overflow-hidden aspect-[4/5]" style={{ backgroundColor: product.color }}>
+            {product.imageUrl && (
+              <motion.img
+                src={product.imageUrl}
+                alt={product.name}
+                loading="lazy"
+                variants={{ hover: { scale: 1.08 } }}
+                transition={{ duration: 0.6, ease: EASE_OUT }}
+                className="absolute inset-0 w-full h-full object-cover"
+              />
+            )}
+            <div className="absolute inset-x-0 bottom-0 h-1/2 pointer-events-none" style={{ background: "linear-gradient(to top, rgba(11,10,9,0.78), transparent)" }} />
+
+            {product.stock === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center backdrop-blur-[2px]" style={{ backgroundColor: "rgba(11,10,9,0.62)" }}>
+                <span className="text-xs font-bold uppercase tracking-wider rounded-full px-3 py-1" style={{ color: COLOR.hueso, border: `1px solid ${COLOR.hueso}55` }}>
+                  Agotado
+                </span>
+              </div>
+            )}
+            {product.isOffer && (
+              <div className="absolute top-2.5 left-2.5 flex items-center gap-1 rounded-full px-2.5 py-1" style={{ backgroundColor: accent, boxShadow: `0 4px 14px ${accent}66` }}>
+                <Flame size={11} style={{ color: COLOR.negro }} />
+                <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: COLOR.negro }}>
+                  Oferta
+                </span>
+              </div>
+            )}
+            {product.stock > 0 && product.stock <= 5 && (
+              <div className="absolute bottom-2.5 left-2.5 rounded-full px-2 py-0.5 backdrop-blur-md" style={{ backgroundColor: "rgba(11,10,9,0.7)", border: "1px solid #FF8A65" }}>
+                <span className="text-[10px] font-semibold" style={{ color: "#FF8A65" }}>
+                  ¡Quedan {product.stock}!
+                </span>
+              </div>
+            )}
+            {/* Aparece al pasar el mouse */}
+            <motion.span
+              variants={{ hover: { opacity: 1, y: 0 } }}
+              initial={{ opacity: 0, y: 8 }}
+              transition={{ duration: 0.25 }}
+              className="absolute bottom-2.5 right-2.5 hidden md:flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold"
+              style={{ backgroundColor: COLOR.hueso, color: COLOR.negro }}
+            >
+              Ver producto
+              <ArrowUpRight size={12} />
+            </motion.span>
+          </div>
+          <div className="px-3.5 py-3">
+            <p className="text-[13px] leading-snug line-clamp-2 min-h-[2.2rem]" style={{ color: COLOR.hueso }}>
+              {product.name}
+            </p>
+            <div className="flex items-baseline gap-2 mt-1.5">
+              <p className="text-base font-bold" style={{ color: accent }}>
+                {product.price}
+              </p>
+              {product.originalPrice && (
+                <p className="text-[11px] line-through" style={{ color: COLOR.muted }}>
+                  {product.originalPrice}
+                </p>
+              )}
+            </div>
+          </div>
+        </button>
+      </motion.div>
     </motion.div>
   );
 }
 
 function AddProductTile({ onClick }) {
+  const accent = useAccent();
   return (
-    <button
+    <motion.button
+      whileHover={{ y: -4, borderColor: accent }}
+      whileTap={{ scale: 0.97 }}
       onClick={onClick}
-      className="w-full rounded-xl flex flex-col items-center justify-center gap-1.5 py-6"
-      style={{ backgroundColor: "transparent", border: `1px dashed ${COLOR.border}`, minHeight: 148 }}
+      className="w-full rounded-2xl flex flex-col items-center justify-center gap-2 py-10"
+      style={{ backgroundColor: "transparent", border: `1.5px dashed ${COLOR.border}`, minHeight: 240 }}
     >
-      <Plus size={18} style={{ color: COLOR.muted }} />
-      <span className="text-[11px]" style={{ color: COLOR.muted }}>
+      <span className="w-11 h-11 rounded-full flex items-center justify-center" style={{ backgroundColor: `${accent}1a` }}>
+        <Plus size={20} style={{ color: accent }} />
+      </span>
+      <span className="text-xs font-medium" style={{ color: COLOR.muted }}>
         Agregar producto
       </span>
-    </button>
+    </motion.button>
   );
 }
 
-function ReviewCard({ review, productName, fullWidth = false }) {
+function ReviewCard({ review, productName, index = 0 }) {
   const accent = useAccent();
   return (
-    <div
-      className={fullWidth ? "rounded-xl p-3" : "shrink-0 w-44 rounded-xl p-3"}
+    <motion.div
+      initial={{ opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4, delay: Math.min(index, 6) * 0.05, ease: EASE_OUT }}
+      whileHover={{ y: -3 }}
+      className="relative rounded-2xl p-4 overflow-hidden"
       style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
     >
-      <div className="flex items-center gap-1.5 mb-1.5">
-        <div
-          className="w-5 h-5 rounded-full flex items-center justify-center text-[9px] font-semibold"
-          style={{ backgroundColor: accent, color: COLOR.negro }}
-        >
+      <Quote size={38} className="absolute -top-1 right-3 opacity-[0.07]" style={{ color: accent }} />
+      <div className="flex items-center gap-2.5 mb-3">
+        <div className="w-8 h-8 rounded-full flex items-center justify-center text-[11px] font-bold" style={{ backgroundColor: accent, color: COLOR.negro }}>
           {review.initials}
         </div>
-        <span className="text-[10px]" style={{ color: COLOR.muted }}>
+        <span className="text-xs font-medium" style={{ color: COLOR.hueso }}>
           {review.buyer}
         </span>
       </div>
-      <p className="text-xs mb-1.5" style={{ color: COLOR.hueso }}>
+      <p className="text-sm leading-relaxed" style={{ color: COLOR.hueso }}>
         &ldquo;{review.quote}&rdquo;
       </p>
       {productName && (
-        <p className="text-[10px]" style={{ color: accent }}>
+        <p className="text-[11px] mt-3 font-medium" style={{ color: accent }}>
           sobre {productName}
         </p>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -303,7 +367,7 @@ function ProfileEditor({ store, accent, onSave, onCancel }) {
   };
 
   return (
-    <div className="px-4 md:px-8 pt-10 md:pt-14 pb-2 flex flex-col gap-3 max-w-lg">
+    <div className="px-4 md:px-8 pt-6 pb-2 flex flex-col gap-3 max-w-lg">
       <p className="text-xs font-medium" style={{ color: COLOR.muted }}>
         Personaliza tu tienda
       </p>
@@ -372,11 +436,43 @@ function ProfileEditor({ store, accent, onSave, onCancel }) {
 }
 
 // ---------------------------------------------------------------------------
-// Vista principal de la tienda: banner, nombre, descripción, ofertas,
-// catálogo y reseñas. Esto es TODO lo que ve un comprador en la portada —
-// cuando el usuario es dueño, además ve controles para personalizar su
-// perfil y gestionar su catálogo directamente aquí.
+// Vista principal de la tienda: portada con parallax, identidad, estadísticas,
+// pestañas fijas, ofertas, catálogo con búsqueda y reseñas. Esto es TODO lo
+// que ve un comprador en la portada — cuando el usuario es dueño, además ve
+// controles para personalizar su perfil y gestionar su catálogo aquí mismo.
 // ---------------------------------------------------------------------------
+function Blob({ color, className, delay = 0 }) {
+  return (
+    <motion.span
+      aria-hidden
+      className={`absolute rounded-full blur-3xl pointer-events-none ${className}`}
+      style={{ backgroundColor: color, opacity: 0.22 }}
+      animate={{ x: [0, 40, -20, 0], y: [0, -24, 18, 0], scale: [1, 1.15, 0.95, 1] }}
+      transition={{ duration: 14, repeat: Infinity, ease: "easeInOut", delay }}
+    />
+  );
+}
+
+function StatPill({ value, label, delay }) {
+  const accent = useAccent();
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.45, delay, ease: EASE_OUT }}
+      className="flex items-baseline gap-1.5 rounded-2xl px-4 py-2.5"
+      style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}
+    >
+      <span className="text-xl font-bold leading-none" style={{ color: accent }}>
+        <CountUp value={value} />
+      </span>
+      <span className="text-xs" style={{ color: COLOR.muted }}>
+        {label}
+      </span>
+    </motion.div>
+  );
+}
+
 function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestion, onSaveProfile, onAddProduct, onEditProduct, onDeleteProduct }) {
   const [activeSection, setActiveSection] = useState("productos");
   const navigate = useNavigate();
@@ -384,8 +480,19 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
   const [isCreatingPost, setIsCreatingPost] = useState(false);
   const [postConfirmation, setPostConfirmation] = useState(false);
   const [reportTarget, setReportTarget] = useState(null);
-  const offers = store.products.filter((p) => p.isOffer);
-  const catalog = store.products.filter((p) => !p.isOffer);
+  const [query, setQuery] = useState("");
+  const [copied, setCopied] = useState(false);
+
+  const { scrollY } = useScroll();
+  const bannerY = useTransform(scrollY, [0, 500], [0, 120]);
+  const bannerScale = useTransform(scrollY, [0, 500], [1.04, 1.16]);
+  const heroContentOpacity = useTransform(scrollY, [0, 260], [1, 0.4]);
+
+  const q = query.trim().toLowerCase();
+  const matches = (p) => !q || p.name.toLowerCase().includes(q) || (p.description ?? "").toLowerCase().includes(q);
+  const offers = store.products.filter((p) => p.isOffer && matches(p));
+  const catalog = store.products.filter((p) => !p.isOffer && matches(p));
+  const totalOffers = store.products.filter((p) => p.isOffer).length;
 
   const handleSaveProfile = (patch) => {
     onSaveProfile(patch);
@@ -398,11 +505,21 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
     setTimeout(() => setPostConfirmation(false), 3000);
   };
 
+  const share = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      window.prompt("Copia el enlace de la tienda:", window.location.href);
+    }
+  };
+
   return (
-    <div className="max-w-[1800px] mx-auto w-full">
+    <div className="max-w-[1800px] mx-auto w-full pb-6">
       {!store.verified && (
         <div
-          className="mx-4 md:mx-0 mt-4 flex items-start gap-2.5 rounded-xl p-3"
+          className="mx-4 md:mx-8 mt-4 flex items-start gap-2.5 rounded-2xl p-3.5"
           style={{ backgroundColor: "rgba(245,194,66,0.08)", border: "1px solid rgba(245,194,66,0.3)" }}
         >
           <ShieldAlert size={16} className="shrink-0 mt-0.5" style={{ color: "#F5C242" }} />
@@ -420,162 +537,259 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
           </p>
         </div>
       )}
-      <div
-        className="h-32 md:h-64 relative rounded-b-2xl md:rounded-2xl md:mt-6"
-        style={{ backgroundColor: store.bannerColor, borderBottom: `2px solid ${accent}` }}
-      >
-        {store.bannerImageUrl && (
-          <div className="absolute inset-0 overflow-hidden rounded-b-2xl md:rounded-2xl">
-            <img src={store.bannerImageUrl} alt="" className="w-full h-full object-cover" />
-          </div>
+
+      {/* PORTADA con parallax */}
+      <div className="relative h-56 md:h-80 overflow-hidden rounded-b-3xl md:rounded-3xl md:mt-5 md:mx-8" style={{ backgroundColor: store.bannerColor }}>
+        {store.bannerImageUrl ? (
+          <motion.img src={store.bannerImageUrl} alt="" style={{ y: bannerY, scale: bannerScale }} className="absolute inset-0 w-full h-full object-cover will-change-transform" />
+        ) : (
+          <>
+            <Blob color={accent} className="w-72 h-72 -top-20 -left-10" />
+            <Blob color={accent} className="w-96 h-96 -bottom-40 right-0" delay={3} />
+          </>
         )}
+        <div className="absolute inset-0" style={{ background: `radial-gradient(120% 90% at 85% 0%, ${accent}33, transparent 55%)` }} />
+        <div className="absolute inset-0" style={{ background: "linear-gradient(to top, rgba(11,10,9,0.92) 0%, rgba(11,10,9,0.15) 55%, transparent 100%)" }} />
+        <div className="absolute bottom-0 inset-x-0 h-0.5" style={{ background: `linear-gradient(90deg, transparent, ${accent}, transparent)` }} />
+
         {isOwner && !isEditingProfile && (
-          <div className="absolute right-3 top-3 md:right-6 md:top-6 flex items-center gap-2 z-10">
-            <button
+          <motion.div style={{ opacity: heroContentOpacity }} className="absolute right-3 top-3 md:right-6 md:top-6 flex items-center gap-2 z-10">
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => (store.verified ? setIsCreatingPost(true) : navigate("/verificacion"))}
-              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2"
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-2 backdrop-blur-md"
               style={{ backgroundColor: accent, color: COLOR.negro, opacity: store.verified ? 1 : 0.6 }}
               title={store.verified ? undefined : "Verifica tu identidad para publicar"}
             >
-              <Film size={12} />
-              <span className="text-[11px] font-medium">Nueva publicación</span>
-            </button>
-            <button
+              <Film size={13} />
+              <span className="text-xs font-semibold">Nueva publicación</span>
+            </motion.button>
+            <motion.button
+              whileHover={{ y: -2 }}
+              whileTap={{ scale: 0.95 }}
               onClick={() => setIsEditingProfile(true)}
-              className="flex items-center gap-1 rounded-lg px-2.5 py-1.5 md:px-3 md:py-2"
-              style={{ backgroundColor: "rgba(255,255,255,0.08)" }}
+              className="flex items-center gap-1.5 rounded-full px-3.5 py-2 backdrop-blur-md"
+              style={{ backgroundColor: "rgba(11,10,9,0.55)", border: `1px solid ${COLOR.border}` }}
             >
-              <Pencil size={12} style={{ color: accent }} />
-              <span className="text-[11px]" style={{ color: accent }}>
+              <Pencil size={13} style={{ color: COLOR.hueso }} />
+              <span className="text-xs font-medium" style={{ color: COLOR.hueso }}>
                 Editar perfil
               </span>
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         )}
-        <div
-          className="absolute left-4 md:left-8 -bottom-7 md:-bottom-10 w-16 h-16 md:w-24 md:h-24 rounded-full flex items-center justify-center font-semibold text-lg md:text-2xl overflow-hidden z-10"
-          style={{ backgroundColor: accent, border: `3px solid ${COLOR.negro}`, color: COLOR.negro }}
-        >
-          {store.avatarUrl ? (
-            <img src={store.avatarUrl} alt="" className="w-full h-full object-cover" />
-          ) : (
-            store.initials
-          )}
-        </div>
       </div>
 
       {isEditingProfile ? (
         <ProfileEditor store={store} accent={accent} onSave={handleSaveProfile} onCancel={() => setIsEditingProfile(false)} />
       ) : (
-        <div className="pt-10 md:pt-14 px-4 md:px-8 pb-1">
-          <div className="flex items-center gap-1.5 md:gap-2">
-            <h1 className="text-lg md:text-2xl font-semibold" style={{ color: COLOR.hueso }}>
-              {store.name}
-            </h1>
-            {store.verified && <BadgeCheck size={16} className="md:w-5 md:h-5" style={{ color: accent }} />}
+        <div className="px-4 md:px-12 -mt-14 md:-mt-16 relative z-10">
+          <div className="flex flex-col md:flex-row md:items-end gap-4 md:gap-6">
+            <motion.div
+              initial={{ scale: 0.6, opacity: 0, rotate: -8 }}
+              animate={{ scale: 1, opacity: 1, rotate: 0 }}
+              transition={SPRING_BOUNCY}
+              className="relative w-28 h-28 md:w-36 md:h-36 rounded-full shrink-0"
+            >
+              <span className="absolute inset-0 rounded-full nexo-glow-pulse" style={{ boxShadow: `0 0 0 3px ${accent}` }} />
+              <div
+                className="relative w-full h-full rounded-full flex items-center justify-center font-bold text-3xl md:text-4xl overflow-hidden"
+                style={{ backgroundColor: accent, border: `5px solid ${COLOR.negro}`, color: COLOR.negro }}
+              >
+                {store.avatarUrl ? <img src={store.avatarUrl} alt="" className="w-full h-full object-cover" /> : store.initials}
+              </div>
+            </motion.div>
+
+            <div className="flex-1 min-w-0 md:pb-2">
+              <Reveal delay={0.1} y={12}>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-2xl md:text-4xl font-bold tracking-tight" style={{ color: COLOR.hueso }}>
+                    {store.name}
+                  </h1>
+                  {store.verified && (
+                    <motion.span
+                      initial={{ scale: 0, rotate: -40 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={{ ...SPRING_BOUNCY, delay: 0.45 }}
+                      className="flex items-center gap-1 rounded-full px-2.5 py-1"
+                      style={{ backgroundColor: `${accent}1f`, border: `1px solid ${accent}55` }}
+                    >
+                      <BadgeCheck size={14} style={{ color: accent }} />
+                      <span className="text-[11px] font-semibold" style={{ color: accent }}>
+                        Verificada
+                      </span>
+                    </motion.span>
+                  )}
+                </div>
+                {store.description && (
+                  <p className="text-sm md:text-[15px] mt-2 leading-relaxed md:max-w-2xl" style={{ color: COLOR.muted }}>
+                    {store.description}
+                  </p>
+                )}
+              </Reveal>
+            </div>
+
+            <Reveal delay={0.2} y={12} className="md:pb-3">
+              {isOwner ? (
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Link
+                    to={`/ventas/${store.slug}`}
+                    className="inline-flex items-center gap-1.5 rounded-full px-5 py-2.5 text-sm font-semibold nexo-glow"
+                    style={{ backgroundColor: accent, color: COLOR.negro }}
+                  >
+                    <Banknote size={15} />
+                    Ver mis ventas
+                  </Link>
+                  <Link to="/panel" className="inline-flex items-center gap-1.5 rounded-full px-4 py-2.5 text-sm font-medium" style={{ border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}>
+                    <LayoutDashboard size={15} />
+                    Panel
+                  </Link>
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.96 }}
+                    onClick={onAskQuestion}
+                    className="nexo-glow flex items-center justify-center gap-2 rounded-full px-6 py-2.5 text-sm font-semibold"
+                    style={{ backgroundColor: accent, color: COLOR.negro }}
+                  >
+                    <MessageCircleQuestion size={16} />
+                    Preguntar
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.92 }}
+                    onClick={share}
+                    className="h-10 rounded-full px-3.5 flex items-center gap-1.5 text-xs font-medium"
+                    style={{ border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}
+                    aria-label="Copiar enlace de la tienda"
+                  >
+                    {copied ? <Check size={15} style={{ color: accent }} /> : <Share2 size={15} />}
+                    <span className="hidden sm:inline">{copied ? "Copiado" : "Compartir"}</span>
+                  </motion.button>
+                  <motion.button
+                    whileHover={{ y: -2 }}
+                    whileTap={{ scale: 0.9 }}
+                    onClick={() => setReportTarget({ type: "store", id: store.id })}
+                    className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
+                    style={{ border: `1px solid ${COLOR.border}` }}
+                    aria-label="Reportar tienda"
+                  >
+                    <Flag size={15} style={{ color: COLOR.muted }} />
+                  </motion.button>
+                </div>
+              )}
+            </Reveal>
           </div>
-          <p className="text-xs md:text-sm mt-1 md:mt-2 leading-snug md:max-w-xl" style={{ color: COLOR.muted }}>
-            {store.description}
-          </p>
+
+          <div className="flex flex-wrap gap-2.5 mt-5">
+            <StatPill value={store.products.length} label="productos" delay={0.25} />
+            <StatPill value={totalOffers} label="en oferta" delay={0.31} />
+            <StatPill value={store.reviews.length} label="reseñas" delay={0.37} />
+          </div>
         </div>
       )}
 
-      <SectionTabs active={activeSection} onChange={setActiveSection} />
+      <div className="mt-6">
+        <SectionTabs active={activeSection} onChange={setActiveSection} counts={{ productos: store.products.length, resenas: store.reviews.length }} />
+      </div>
 
-      {activeSection === "productos" && (
-        <>
-          {offers.length > 0 && (
-            <div className="px-4 md:px-8 pt-3">
-              <p className="text-sm md:text-base font-medium mb-2" style={{ color: COLOR.hueso }}>
-                Ofertas
-              </p>
-              <div className="flex gap-2.5 md:gap-3 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: "none" }}>
-                {offers.map((p) => (
-                  <ProductCard
-                    key={p.id}
-                    product={p}
-                    onOpen={onOpenProduct}
-                    size="small"
-                    isOwner={isOwner}
-                    onEdit={onEditProduct}
-                    onDelete={onDeleteProduct}
-                  />
-                ))}
+      <AnimatePresence mode="wait" initial={false}>
+        {activeSection === "productos" && (
+          <motion.div key="productos" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }}>
+            <div className="px-4 md:px-8 pt-5">
+              <div
+                className="flex items-center gap-2.5 rounded-full px-4 py-2.5 max-w-md transition-colors focus-within:border-[var(--accent)]"
+                style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, "--accent": accent }}
+              >
+                <Search size={15} style={{ color: COLOR.muted }} />
+                <input
+                  type="text"
+                  value={query}
+                  onChange={(e) => setQuery(e.target.value)}
+                  placeholder={`Buscar en ${store.name}`}
+                  className="bg-transparent outline-none text-sm w-full"
+                  style={{ color: COLOR.hueso }}
+                />
+                {query && (
+                  <button onClick={() => setQuery("")} aria-label="Limpiar búsqueda">
+                    <X size={14} style={{ color: COLOR.muted }} />
+                  </button>
+                )}
               </div>
             </div>
-          )}
 
-          <div className="px-4 md:px-8 pt-4">
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 2xl:grid-cols-7 gap-2.5 md:gap-3">
-              {catalog.map((p) => (
-                <ProductCard key={p.id} product={p} onOpen={onOpenProduct} isOwner={isOwner} onEdit={onEditProduct} onDelete={onDeleteProduct} />
-              ))}
-              {isOwner && <AddProductTile onClick={onAddProduct} />}
+            {offers.length > 0 && (
+              <div className="px-4 md:px-8 pt-6">
+                <div className="flex items-center gap-2 mb-3">
+                  <span className="w-7 h-7 rounded-full flex items-center justify-center" style={{ backgroundColor: `${accent}22` }}>
+                    <Flame size={15} style={{ color: accent }} />
+                  </span>
+                  <p className="text-base md:text-lg font-bold" style={{ color: COLOR.hueso }}>
+                    Ofertas
+                  </p>
+                </div>
+                <div className="flex gap-3 md:gap-4 overflow-x-auto pb-3 -mx-1 px-1 snap-x" style={{ scrollbarWidth: "none" }}>
+                  {offers.map((p, i) => (
+                    <div key={p.id} className="snap-start shrink-0">
+                      <ProductCard product={p} onOpen={onOpenProduct} size="small" isOwner={isOwner} onEdit={onEditProduct} onDelete={onDeleteProduct} index={i} />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="px-4 md:px-8 pt-6">
+              {(catalog.length > 0 || offers.length > 0) && !q && offers.length > 0 && (
+                <p className="text-base md:text-lg font-bold mb-3" style={{ color: COLOR.hueso }}>
+                  Todo el catálogo
+                </p>
+              )}
+              <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 md:gap-4">
+                {catalog.map((p, i) => (
+                  <ProductCard key={p.id} product={p} onOpen={onOpenProduct} isOwner={isOwner} onEdit={onEditProduct} onDelete={onDeleteProduct} index={i} />
+                ))}
+                {isOwner && !q && <AddProductTile onClick={onAddProduct} />}
+              </div>
+              {catalog.length === 0 && offers.length === 0 && (
+                <div className="text-center py-14">
+                  <Package size={30} className="mx-auto mb-3" style={{ color: COLOR.muted }} />
+                  <p className="text-sm" style={{ color: COLOR.muted }}>
+                    {q ? `No encontramos productos para “${query.trim()}”.` : "Esta tienda aún no tiene productos."}
+                  </p>
+                </div>
+              )}
             </div>
-          </div>
-        </>
-      )}
-
-      {activeSection === "resenas" && (
-        <div className="px-4 md:px-8 pt-3">
-          {store.reviews.length > 0 ? (
-            <div className="flex flex-col md:grid md:grid-cols-2 xl:grid-cols-3 gap-2.5">
-              {store.reviews.map((r) => (
-                <ReviewCard
-                  key={r.id}
-                  review={r}
-                  productName={store.products.find((p) => p.id === r.productId)?.name}
-                  fullWidth
-                />
-              ))}
-            </div>
-          ) : (
-            <p className="text-xs py-6 text-center" style={{ color: COLOR.muted }}>
-              Todavía no hay publicaciones de compradores sobre esta tienda.
-            </p>
-          )}
-        </div>
-      )}
-
-      <div className="px-4 md:px-8 pt-5 pb-6 md:max-w-sm">
-        {isOwner ? (
-          <div className="flex flex-col items-center gap-2">
-            <p className="text-[11px] text-center" style={{ color: COLOR.muted }}>
-              Esta es la vista pública de tu tienda.
-            </p>
-            <Link
-              to={`/ventas/${store.slug}`}
-              className="inline-flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold"
-              style={{ backgroundColor: accent, color: COLOR.negro }}
-            >
-              <Banknote size={14} />
-              Ver mis ventas
-            </Link>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <motion.button
-              whileHover={{ y: -2 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={onAskQuestion}
-              className="flex-1 flex items-center justify-center gap-1.5 rounded-full py-2.5 text-sm font-semibold"
-              style={{ backgroundColor: accent, color: COLOR.negro }}
-            >
-              <MessageCircleQuestion size={15} />
-              Preguntar
-            </motion.button>
-            <motion.button
-              whileTap={{ scale: 0.9 }}
-              onClick={() => setReportTarget({ type: "store", id: store.id })}
-              className="w-10 h-10 rounded-full flex items-center justify-center shrink-0"
-              style={{ border: `1px solid ${COLOR.border}` }}
-              aria-label="Reportar tienda"
-            >
-              <Flag size={16} style={{ color: COLOR.muted }} />
-            </motion.button>
-          </div>
+          </motion.div>
         )}
-      </div>
+
+        {activeSection === "resenas" && (
+          <motion.div key="resenas" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.25 }} className="px-4 md:px-8 pt-5">
+            {store.reviews.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-4">
+                {store.reviews.map((r, i) => (
+                  <ReviewCard key={r.id} review={r} index={i} productName={store.products.find((p) => p.id === r.productId)?.name} />
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-14">
+                <Sparkles size={30} className="mx-auto mb-3" style={{ color: COLOR.muted }} />
+                <p className="text-sm" style={{ color: COLOR.muted }}>
+                  Todavía no hay publicaciones de compradores sobre esta tienda.
+                </p>
+              </div>
+            )}
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {isOwner && (
+        <p className="text-[11px] text-center mt-8" style={{ color: COLOR.muted }}>
+          Esta es la vista pública de tu tienda.
+        </p>
+      )}
 
       {isCreatingPost && (
         <PostCreateModal
@@ -590,14 +804,20 @@ function StoreHome({ store, isOwner, accent, userId, onOpenProduct, onAskQuestio
 
       {reportTarget && <ReportModal target={reportTarget} onClose={() => setReportTarget(null)} />}
 
-      {postConfirmation && (
-        <div
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full px-4 py-2.5 text-sm font-medium"
-          style={{ backgroundColor: accent, color: COLOR.negro }}
-        >
-          Publicado ✓ — ya aparece en el Feed
-        </div>
-      )}
+      <AnimatePresence>
+        {postConfirmation && (
+          <motion.div
+            initial={{ opacity: 0, y: 30, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={SPRING}
+            className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 rounded-full px-5 py-3 text-sm font-semibold"
+            style={{ backgroundColor: accent, color: COLOR.negro, boxShadow: `0 10px 30px ${accent}55` }}
+          >
+            Publicado ✓ — ya aparece en el Feed
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
