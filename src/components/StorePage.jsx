@@ -205,16 +205,13 @@ function ProductCard({ product, onOpen, size = "normal", isOwner, onEdit, onDele
               </div>
             )}
             {/* Aparece al pasar el mouse */}
-            <motion.span
-              variants={{ hover: { opacity: 1, y: 0 } }}
-              initial={{ opacity: 0, y: 8 }}
-              transition={{ duration: 0.25 }}
-              className="absolute bottom-2.5 right-2.5 hidden md:flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold"
+            <span
+              className="absolute bottom-2.5 right-2.5 hidden md:flex items-center gap-1 rounded-full px-3 py-1.5 text-[11px] font-semibold opacity-0 translate-y-2 transition duration-300 group-hover:opacity-100 group-hover:translate-y-0"
               style={{ backgroundColor: COLOR.hueso, color: COLOR.negro }}
             >
               Ver producto
               <ArrowUpRight size={12} />
-            </motion.span>
+            </span>
           </div>
           <div className="px-3.5 py-3">
             <p className="text-[13px] leading-snug line-clamp-2 min-h-[2.2rem]" style={{ color: COLOR.hueso }}>
