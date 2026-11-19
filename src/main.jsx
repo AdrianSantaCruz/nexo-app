@@ -8,6 +8,7 @@ import { AuthProvider } from './context/AuthContext.jsx'
 import { CartProvider } from './context/CartProvider.jsx'
 import { ModeProvider } from './context/ModeProvider.jsx'
 import { NotificationsProvider } from './context/NotificationsProvider.jsx'
+import ErrorBoundary from './components/ErrorBoundary.jsx'
 
 createRoot(document.getElementById('root')).render(
   <StrictMode>
@@ -17,7 +18,9 @@ createRoot(document.getElementById('root')).render(
           <ModeProvider>
             <CartProvider>
               <NotificationsProvider>
-                <App />
+                <ErrorBoundary>
+                  <App />
+                </ErrorBoundary>
               </NotificationsProvider>
             </CartProvider>
           </ModeProvider>

@@ -213,16 +213,17 @@ function ChatThread({ conversation, currentUserId, onBack, onSent }) {
 
   const all = useMemo(() => [...conversation.messages, ...pending], [conversation.messages, pending]);
 
-  useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
-  }, [all.length, otherTyping]);
-
   // Si la otra persona termina de escribir y llega su mensaje, "escribiendo…" desaparece.
+  // (Estas variables se calculan ANTES de los efectos que las usan.)
   const lastIncomingId = [...conversation.messages].reverse().find((m) => m.senderId !== currentUserId)?.id ?? null;
+  const otherTyping = typingMark !== null && typingMark.id === lastIncomingId;
   useEffect(() => {
     lastIncomingRef.current = lastIncomingId;
   }, [lastIncomingId]);
-  const otherTyping = typingMark !== null && typingMark.id === lastIncomingId;
+
+  useEffect(() => {
+    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
+  }, [all.length, otherTyping]);
 
   const deliver = async (tempId, text) => {
     try {

@@ -42,7 +42,7 @@ export async function deleteNotification(id) {
 export function subscribeToNotifications(userId, { onInsert, onUpdate, onDelete }) {
   const filter = `user_id=eq.${userId}`;
   const channel = supabase
-    .channel(`notifications-${userId}`)
+    .channel(`notifications-${userId}-${Math.random().toString(36).slice(2, 8)}`)
     .on("postgres_changes", { event: "INSERT", schema: "public", table: "notifications", filter }, (payload) => onInsert?.(mapNotification(payload.new)))
     .on("postgres_changes", { event: "UPDATE", schema: "public", table: "notifications", filter }, (payload) => onUpdate?.(mapNotification(payload.new)))
     .on("postgres_changes", { event: "DELETE", schema: "public", table: "notifications", filter }, (payload) => onDelete?.(payload.old?.id))
