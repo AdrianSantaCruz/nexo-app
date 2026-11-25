@@ -1,5 +1,5 @@
 import { AnimatePresence, motion } from "motion/react";
-import { MapPin, MessageCircle, Lock, Clock, TriangleAlert, KeyRound } from "lucide-react";
+import { MapPin, MessageCircle, Store, Clock, TriangleAlert, KeyRound } from "lucide-react";
 import { EASE_OUT, SPRING, SPRING_SOFT } from "../lib/motionConfig";
 import { Skeleton } from "./ui/Motion";
 
@@ -34,7 +34,7 @@ export function LockerCard({ point, selected, onSelect, disabled }) {
         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
         style={{ backgroundColor: selected ? COLOR.lima : "rgba(83,252,99,0.08)" }}
       >
-        <Lock size={18} style={{ color: selected ? COLOR.negro : COLOR.lima }} />
+        <Store size={18} style={{ color: selected ? COLOR.negro : COLOR.lima }} />
       </span>
       <span className="flex-1 min-w-0">
         <span className="block text-sm font-semibold" style={{ color: COLOR.hueso }}>
@@ -61,11 +61,11 @@ export function LockerCard({ point, selected, onSelect, disabled }) {
 }
 
 const OPTIONS = [
-  { id: "locker", label: "Recoger en locker", sub: "Lockers Nexo en el centro de Arequipa", icon: Lock },
+  { id: "locker", label: "Punto de recojo Nexo", sub: "En el centro de Arequipa", icon: MapPin },
   { id: "coordinar", label: "Coordinar con la tienda", sub: "Acuerdan la entrega por chat", icon: MessageCircle },
 ];
 
-// Elige cómo recibir el pedido: en un locker Nexo (con el punto de recojo) o
+// Elige cómo recibir el pedido: en un punto de recojo Nexo o
 // a coordinar con la tienda.
 export default function PickupPicker({ method, onMethod, points, status, selectedId, onSelect, disabled }) {
   const lockersAvailable = status === "ready" && points.length > 0;
@@ -128,7 +128,7 @@ export default function PickupPicker({ method, onMethod, points, status, selecte
             className="overflow-hidden"
           >
             <p className="text-xs mt-4 mb-2" style={{ color: COLOR.muted }}>
-              Elige el locker donde la tienda dejará tu pedido. Lo retirarás digitando tu código de pedido en el locker.
+              Elige el punto donde la tienda dejará tu pedido. Lo retirarás con tu código de pedido.
             </p>
             <div className="flex flex-col gap-2">
               {points.map((p) => (
@@ -156,7 +156,7 @@ export default function PickupPicker({ method, onMethod, points, status, selecte
                   Sin respaldo de Nexo para quejas
                 </p>
                 <p className="text-xs mt-1 leading-relaxed" style={{ color: COLOR.hueso }}>
-                  Si coordinas la entrega directamente con la tienda, Nexo no podrá atender quejas ni reclamos de este pedido. Para tener respaldo, recoge en un locker Nexo.
+                  Si coordinas la entrega directamente con la tienda, Nexo no podrá atender quejas ni reclamos de este pedido. Para tener respaldo, recoge en un punto Nexo.
                 </p>
                 <p className="text-xs mt-2 leading-relaxed flex items-start gap-1.5" style={{ color: COLOR.muted }}>
                   <KeyRound size={13} className="shrink-0 mt-0.5" />
@@ -170,7 +170,7 @@ export default function PickupPicker({ method, onMethod, points, status, selecte
 
       {status === "error" && (
         <p className="text-xs mt-3" style={{ color: COLOR.muted }}>
-          Los lockers no están disponibles por ahora. Puedes coordinar la entrega con la tienda.
+          Los puntos de recojo no están disponibles por ahora. Puedes coordinar la entrega con la tienda.
         </p>
       )}
     </motion.div>

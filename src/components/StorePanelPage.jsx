@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion } from "motion/react";
-import { Banknote, BellRing, ShieldAlert, ChevronRight, Clapperboard, Lock, Package, Plus, Receipt, ShoppingBag, Store, TrendingUp, TriangleAlert } from "lucide-react";
+import { Banknote, BellRing, ShieldAlert, ChevronRight, Clapperboard, MapPin, Package, Plus, Receipt, ShoppingBag, Store, TrendingUp, TriangleAlert } from "lucide-react";
 import { useAuth } from "../context/authContext";
 import * as storesApi from "../lib/storesApi";
 import * as ordersApi from "../lib/ordersApi";
@@ -280,7 +280,7 @@ export default function StorePanelPage() {
               <Kpi icon={TrendingUp} label="Ventas" value={stats.sold.length} hint={`Ticket promedio ${formatSoles(Math.round(stats.ticket * 100) / 100)}`} />
             </StaggerItem>
             <StaggerItem>
-              <Kpi icon={Lock} label="En locker" value={stats.inLocker.length} hint="Esperando que el comprador recoja" to={`/ventas/${slug}`} />
+              <Kpi icon={MapPin} label="Por recoger" value={stats.inLocker.length} hint="Esperando que el comprador recoja" to={`/ventas/${slug}`} />
             </StaggerItem>
           </Stagger>
 
@@ -290,7 +290,7 @@ export default function StorePanelPage() {
                 { to: "/panel/publicaciones?nueva=1", icon: Plus, label: "Nueva publicación" },
                 { to: `/tienda/${slug}`, icon: Package, label: "Agregar producto" },
                 { to: `/ventas/${slug}`, icon: Receipt, label: "Todos los pedidos" },
-                { to: "/lockers", icon: Lock, label: "Lockers" },
+                { to: "/lockers", icon: MapPin, label: "Recojo" },
               ].map((a) => (
                 <motion.div key={a.label} whileHover={{ y: -2 }} whileTap={{ scale: 0.96 }}>
                   <Link to={a.to} className="flex items-center gap-1.5 rounded-full px-4 py-2 text-xs font-semibold" style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}`, color: COLOR.hueso }}>

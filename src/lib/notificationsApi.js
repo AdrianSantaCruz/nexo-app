@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { textoRecojo } from "./pickupApi";
 
 // Centro de notificaciones (supabase/migration_19). Las crean los triggers de
 // la base de datos; aquí solo se leen, se marcan como leídas y se escuchan en
@@ -8,8 +9,8 @@ function mapNotification(row) {
   return {
     id: row.id,
     type: row.type,
-    title: row.title,
-    body: row.body ?? "",
+    title: textoRecojo(row.title),
+    body: textoRecojo(row.body),
     data: row.data ?? {},
     readAt: row.read_at ?? null,
     createdAt: row.created_at,

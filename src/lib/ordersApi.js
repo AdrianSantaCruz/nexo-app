@@ -1,4 +1,5 @@
 import { supabase } from "./supabaseClient";
+import { textoRecojo } from "./pickupApi";
 
 // Pedidos: "Mis compras" (comprador) y "Ventas" (vendedor), separados por
 // tienda. Los cambios de estado pasan por funciones del servidor (migration
@@ -14,7 +15,7 @@ export const STATUS_LABEL = {
 
 // En pedidos de locker el estado "enviado" significa "ya está en el locker" y
 // "entregado" que el comprador lo recogió.
-export const LOCKER_STATUS_LABEL = { ...STATUS_LABEL, enviado: "Listo en locker", entregado: "Recogido" };
+export const LOCKER_STATUS_LABEL = { ...STATUS_LABEL, enviado: "Listo para recoger", entregado: "Recogido" };
 
 export function statusLabel(group) {
   return (group.deliveryMethod === "locker" ? LOCKER_STATUS_LABEL : STATUS_LABEL)[group.status];
@@ -62,7 +63,7 @@ function mapGroup(row) {
     buyerFee: Number(row.orders?.buyer_fee ?? 0),
     pickupPoint: row.orders?.pickup_points
       ? {
-          name: row.orders.pickup_points.name,
+          name: textoRecojo(row.orders.pickup_points.name),
           district: row.orders.pickup_points.district,
           address: row.orders.pickup_points.address,
           hours: row.orders.pickup_points.hours,
@@ -116,7 +117,7 @@ const DELIVER_ERRORS = {
   CODIGO_INCORRECTO: "El código no es correcto. Pídeselo de nuevo al comprador.",
   PEDIDO_NO_PAGADO: "El pedido todavía no está pagado.",
   ESTADO_INVALIDO: "Primero marca el pedido como preparando.",
-  ENTREGA_EN_LOCKER: "Este pedido se entrega en un locker: el locker registra el retiro.",
+  ENTREGA_EN_LOCKER: "Este pedido se recoge en un punto de recojo: el retiro se registra allí.",
 };
 
 // Entrega a coordinar: el vendedor digita el código que le da el comprador.

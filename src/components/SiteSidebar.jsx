@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
-import { Search, Compass, LayoutGrid, MessageCircle, Bell, User, Plus, ShoppingCart, Receipt, Lock, LayoutDashboard, Package, Clapperboard, Store, ShoppingBag } from "lucide-react";
+import { Search, Compass, LayoutGrid, MessageCircle, Bell, User, Plus, ShoppingCart, Receipt, MapPin, LayoutDashboard, Package, Clapperboard, Store, ShoppingBag } from "lucide-react";
 import { AnimatePresence, motion } from "motion/react";
 import LogoMark from "./LogoMark";
 import { useAuth } from "../context/authContext";
@@ -187,7 +187,7 @@ export default function SiteSidebar() {
             <SidebarItem icon={Clapperboard} label="Publicaciones" to="/panel/publicaciones" active={path === "/panel/publicaciones"} />
             <SidebarItem icon={MessageCircle} label="Chats" to="/chats" active={path.startsWith("/chats")} badge={chatCount} />
             <SidebarItem icon={Bell} label="Notificaciones" to="/notificaciones" active={path === "/notificaciones"} badge={bellCount} />
-            <SidebarItem icon={Lock} label="Lockers" to="/lockers" active={path === "/lockers"} />
+            <SidebarItem icon={MapPin} label="Recojo" to="/lockers" active={path === "/lockers"} />
           </>
         ) : (
           <>
@@ -197,7 +197,7 @@ export default function SiteSidebar() {
             <SidebarItem icon={Bell} label="Notificaciones" to="/notificaciones" active={path === "/notificaciones"} badge={bellCount} />
             <SidebarItem icon={ShoppingCart} label="Carrito" to="/carrito" active={path === "/carrito"} badge={cartCount} />
             {user && <SidebarItem icon={Receipt} label="Mis pedidos" to="/pedidos" active={path === "/pedidos"} />}
-            <SidebarItem icon={Lock} label="Lockers" to="/lockers" active={path === "/lockers"} />
+            <SidebarItem icon={MapPin} label="Recojo" to="/lockers" active={path === "/lockers"} />
           </>
         )}
         <SidebarItem

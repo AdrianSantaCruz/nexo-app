@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { Lock, MapPin, PackageCheck, KeyRound, Store, FlaskConical } from "lucide-react";
+import { MapPin, PackageCheck, KeyRound, Store, FlaskConical } from "lucide-react";
 import { motion } from "motion/react";
 import { useAuth } from "../context/authContext";
 import * as pickupApi from "../lib/pickupApi";
@@ -10,13 +10,13 @@ import { EmptyState, Reveal, Skeleton, Stagger, StaggerItem } from "./ui/Motion"
 const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 const STEPS = [
-  { icon: Store, title: "La tienda deja tu pedido", text: "Al dejarlo en el locker, este registra que ya está listo." },
+  { icon: Store, title: "La tienda deja tu pedido", text: "Cuando lo deja en el punto de recojo, queda registrado que ya está listo." },
   { icon: KeyRound, title: "Tienes tu código de pedido", text: "Aparece en Mis pedidos y solo tú puedes verlo." },
-  { icon: PackageCheck, title: "Lo retiras con tu código", text: "Digitas tu código en el locker y este registra la entrega." },
+  { icon: PackageCheck, title: "Lo retiras con tu código", text: "Digitas tu código en el punto y queda registrada la entrega." },
 ];
 
-// SIMULADOR del teclado del locker: sirve para probar y mostrar el flujo
-// completo mientras no existan los lockers físicos.
+// SIMULADOR del retiro: sirve para probar y mostrar el flujo
+// completo mientras no estén operando los puntos de recojo.
 function LockerSimulator({ points }) {
   const { user } = useAuth();
   const [pointId, setPointId] = useState("");
@@ -31,7 +31,7 @@ function LockerSimulator({ points }) {
     setResult(null);
     try {
       await pickupApi.lockerWithdraw(selected, digits);
-      setResult({ ok: true, text: "Locker abierto. Pedido retirado: ya figura como Recogido en Mis pedidos." });
+      setResult({ ok: true, text: "Código correcto. Pedido retirado: ya figura como Recogido en Mis pedidos." });
       setCode("");
     } catch (err) {
       setResult({ ok: false, text: err?.message || "No se pudo registrar el retiro." });
@@ -44,10 +44,10 @@ function LockerSimulator({ points }) {
     <div className="rounded-2xl p-5 mt-8" style={{ backgroundColor: COLOR.surface, border: `1px dashed ${COLOR.border}` }}>
       <p className="flex items-center gap-2 text-sm font-semibold" style={{ color: COLOR.hueso }}>
         <FlaskConical size={15} style={{ color: COLOR.lima }} />
-        Probar un locker (simulación)
+        Probar el recojo (simulación)
       </p>
       <p className="text-xs mt-1 leading-relaxed" style={{ color: COLOR.muted }}>
-        Hasta que existan los lockers físicos, así se ve el retiro: eliges el locker, digitas el código de tu pedido y el locker registra la entrega.
+        Mientras los puntos de recojo no estén operando, así se ve el retiro: eliges el punto, digitas el código de tu pedido y queda registrada la entrega.
       </p>
       {!user ? (
         <p className="text-xs mt-3" style={{ color: COLOR.muted }}>
@@ -102,7 +102,7 @@ function LockerSimulator({ points }) {
   );
 }
 
-// Lista pública de los lockers de Nexo (puntos de recojo en el centro de Arequipa).
+// Lista pública de los puntos de recojo de Nexo en el centro de Arequipa.
 export default function LockersPage() {
   const [points, setPoints] = useState(null);
   const [error, setError] = useState(false);
@@ -122,10 +122,10 @@ export default function LockersPage() {
     <div className="max-w-2xl mx-auto px-4 md:px-8 py-8">
       <Reveal>
         <h1 className="text-2xl font-bold" style={{ color: COLOR.hueso }}>
-          Lockers Nexo
+          Puntos de recojo
         </h1>
         <p className="text-sm mt-1.5 leading-relaxed" style={{ color: COLOR.muted }}>
-          Puntos de recojo en lugares céntricos de Arequipa. Compra, elige tu locker y recoge tu pedido cuando te convenga, sin esperar al vendedor.
+          Puntos de recojo en lugares céntricos de Arequipa. Compra, elige tu punto y recoge tu pedido cuando te convenga, sin esperar al vendedor.
         </p>
       </Reveal>
 
@@ -153,7 +153,7 @@ export default function LockersPage() {
       </h2>
 
       {error ? (
-        <EmptyState icon={Lock} title="No pudimos cargar los lockers" subtitle="Revisa tu conexión e inténtalo de nuevo." />
+        <EmptyState icon={MapPin} title="No pudimos cargar los puntos de recojo" subtitle="Revisa tu conexión e inténtalo de nuevo." />
       ) : points === null ? (
         <div className="flex flex-col gap-2.5">
           <Skeleton className="h-20" />
@@ -161,7 +161,7 @@ export default function LockersPage() {
           <Skeleton className="h-20" />
         </div>
       ) : points.length === 0 ? (
-        <EmptyState icon={Lock} title="Pronto habrá lockers" subtitle="Estamos definiendo los primeros puntos en el centro de Arequipa." />
+        <EmptyState icon={MapPin} title="Pronto habrá puntos de recojo" subtitle="Estamos definiendo los primeros puntos en el centro de Arequipa." />
       ) : (
         <Stagger className="flex flex-col gap-2.5">
           {points.map((p) => (
@@ -175,7 +175,7 @@ export default function LockersPage() {
       {points && points.length > 0 && <LockerSimulator points={points} />}
 
       <p className="text-[11px] mt-4 leading-relaxed" style={{ color: COLOR.muted }}>
-        Ubicaciones referenciales: las direcciones y horarios finales se confirmarán al instalar cada locker.
+        Ubicaciones referenciales: las direcciones y horarios finales se confirmarán al habilitar cada punto.
       </p>
 
       <Link

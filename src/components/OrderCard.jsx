@@ -22,7 +22,7 @@ const STATUS_COLOR = {
 };
 
 // "entregado" nunca lo marca la tienda a mano: se confirma con el código del
-// pedido (coordinar) o lo registra el locker al retirar.
+// pedido (coordinar) o se registra en el punto de recojo al retirar.
 const NEXT = { pendiente: "preparando", preparando: "enviado" };
 
 const formatCode = (code) => (code && code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code);
@@ -91,9 +91,9 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
   const paid = group.paymentStatus === "pagado";
   const refunded = group.paymentStatus === "cancelado" && Boolean(group.paymentReference);
   const isLocker = group.deliveryMethod === "locker";
-  // En pedidos de locker la tienda llega hasta "enviado" (dejado en el locker).
+  // Con punto de recojo la tienda llega hasta "enviado" (dejado en el punto).
   const next = NEXT[group.status];
-  const nextLabel = isLocker && next === "enviado" ? "dejado en el locker" : next ? STATUS_LABEL[next].toLowerCase() : "";
+  const nextLabel = isLocker && next === "enviado" ? "dejado en el punto de recojo" : next ? STATUS_LABEL[next].toLowerCase() : "";
   const date = new Date(group.createdAt).toLocaleDateString("es-PE", { day: "numeric", month: "short", year: "numeric" });
   const payColor = paid ? COLOR.lima : refunded ? "#FF8A65" : "#F5C242";
   const PayIcon = paid ? ShieldCheck : refunded ? Undo2 : Clock;
@@ -227,8 +227,8 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
           <p className="text-xs mt-2 leading-relaxed" style={{ color: COLOR.muted }}>
             {isLocker
               ? group.status === "enviado"
-                ? "Tu pedido ya está en el locker. Digita este código en el locker para retirarlo."
-                : "Cuando tu pedido esté en el locker, digita este código allí para retirarlo."
+                ? "Tu pedido ya está en el punto de recojo. Digita este código allí para retirarlo."
+                : "Cuando tu pedido esté en el punto de recojo, digita este código allí para retirarlo."
               : "Dáselo al vendedor solo cuando tengas tu pedido en las manos: con él marca la entrega. Sin tu código no puede darlo por entregado."}
           </p>
         </div>
@@ -236,7 +236,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
       {mode === "buyer" && group.status === "entregado" && (
         <p className="text-xs mt-3 flex items-center gap-1.5" style={{ color: "#17D63A" }}>
           <BadgeCheck size={14} />
-          {isLocker ? "Retiraste tu pedido del locker." : "El vendedor confirmó la entrega con tu código."}
+          {isLocker ? "Retiraste tu pedido en el punto de recojo." : "El vendedor confirmó la entrega con tu código."}
         </p>
       )}
 
@@ -276,7 +276,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
 
       {mode === "seller" && isLocker && group.status === "enviado" && (
         <p className="text-xs mt-3" style={{ color: COLOR.muted }}>
-          El locker registró el depósito. El pedido pasará a "Recogido" cuando el comprador digite su código en el locker.
+          Depósito registrado. El pedido pasará a "Recogido" cuando el comprador digite su código en el punto de recojo.
         </p>
       )}
 

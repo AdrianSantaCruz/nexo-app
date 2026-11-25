@@ -115,7 +115,7 @@ export default function CartPage() {
   // Si el pedido se creó pero el pago falló, se reintenta el pago de ESE pedido.
   const [pendingOrderId, setPendingOrderId] = useState(null);
   const [error, setError] = useState("");
-  // Entrega: locker Nexo (con punto de recojo) o a coordinar con la tienda.
+  // Entrega: en un punto de recojo Nexo o a coordinar con la tienda.
   const [deliveryMethod, setDeliveryMethod] = useState("locker");
   const [pickupPointId, setPickupPointId] = useState(null);
   const [points, setPoints] = useState([]);
@@ -330,7 +330,7 @@ export default function CartPage() {
         )}
         {needsLocker && (
           <p className="text-[11px] text-center mt-2.5" style={{ color: COLOR.lima }}>
-            Elige el locker donde recogerás tu pedido para continuar.
+            Elige el punto donde recogerás tu pedido para continuar.
           </p>
         )}
         <p className="text-[11px] text-center mt-2.5" style={{ color: COLOR.muted }}>
@@ -343,7 +343,7 @@ export default function CartPage() {
           total={frozenTotal}
           note={
             effectiveMethod === "locker" && chosenPoint
-              ? `Recogerás tu pedido en ${chosenPoint.name}. Tu código de pedido está en Mis pedidos: lo digitarás en el locker para retirarlo.`
+              ? `Recogerás tu pedido en ${chosenPoint.name}. Tu código de pedido está en Mis pedidos: lo digitarás en el punto para retirarlo.`
               : "Recuerda: coordinar la entrega con la tienda no tiene respaldo de Nexo para quejas. Tu código de pedido está en Mis pedidos: dáselo al vendedor solo cuando recibas tu pedido."
           }
           onPay={handlePay}
