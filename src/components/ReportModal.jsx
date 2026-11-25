@@ -10,7 +10,7 @@ const COLOR = {
   negro: "#0B0A09",
   surfaceHigh: "#1E1B18",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -95,7 +95,7 @@ export default function ReportModal({ target, onClose }) {
                     onClick={() => setReason(r)}
                     className="flex items-center justify-between rounded-xl px-4 py-3 text-sm text-left"
                     style={{
-                      backgroundColor: on ? "rgba(200,255,77,0.08)" : COLOR.surfaceHigh,
+                      backgroundColor: on ? "rgba(83,252,99,0.08)" : COLOR.surfaceHigh,
                       border: `1px solid ${on ? COLOR.lima : COLOR.border}`,
                       color: on ? COLOR.lima : COLOR.hueso,
                     }}

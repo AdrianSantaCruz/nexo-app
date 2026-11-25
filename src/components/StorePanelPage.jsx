@@ -12,7 +12,7 @@ import { PostTile } from "./StorePostsPage";
 import PostCreateModal from "./PostCreateModal";
 import { EmptyState, Reveal, Skeleton, Stagger, StaggerItem } from "./ui/Motion";
 
-const COLOR = { negro: "#0B0A09", surface: "#151311", surfaceHigh: "#1E1B18", border: "#2A2622", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378", coral: "#FF8A65" };
+const COLOR = { negro: "#0B0A09", surface: "#151311", surfaceHigh: "#1E1B18", border: "#2A2622", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378", coral: "#FF8A65" };
 
 const DAYS = 14;
 
@@ -63,7 +63,7 @@ function Kpi({ icon: Icon, label, value, hint, accent, to }) {
     <motion.div
       whileHover={{ y: -3 }}
       className="h-full rounded-2xl p-4"
-      style={{ backgroundColor: accent ? "rgba(200,255,77,0.07)" : COLOR.surface, border: `1px solid ${accent ? "rgba(200,255,77,0.25)" : COLOR.border}` }}
+      style={{ backgroundColor: accent ? "rgba(83,252,99,0.07)" : COLOR.surface, border: `1px solid ${accent ? "rgba(83,252,99,0.25)" : COLOR.border}` }}
     >
       <div className="flex items-center gap-2 text-xs" style={{ color: COLOR.muted }}>
         <Icon size={14} style={{ color: COLOR.lima }} />

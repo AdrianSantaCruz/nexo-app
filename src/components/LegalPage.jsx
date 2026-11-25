@@ -3,7 +3,7 @@ import { ArrowLeft, FileText } from "lucide-react";
 import { LEGAL_DOCS } from "../lib/legalDocs";
 import { EmptyState, Reveal, Stagger, StaggerItem } from "./ui/Motion";
 
-const COLOR = { lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 export default function LegalPage() {
   const { doc } = useParams();

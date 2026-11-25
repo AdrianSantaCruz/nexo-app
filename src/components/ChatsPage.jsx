@@ -11,7 +11,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
   online: "#4ADE80",
@@ -114,7 +114,7 @@ function ConversationRow({ conversation, active, currentUserId, index, onClick }
       whileHover={{ backgroundColor: "rgba(255,255,255,0.03)" }}
       onClick={onClick}
       className="w-full flex items-center gap-3 px-4 py-3 text-left"
-      style={{ backgroundColor: active ? "rgba(200,255,77,0.08)" : "transparent" }}
+      style={{ backgroundColor: active ? "rgba(83,252,99,0.08)" : "transparent" }}
     >
       <Avatar url={conversation.otherAvatarUrl} initials={conversation.otherInitials} size={44} />
       <div className="min-w-0 flex-1">
@@ -286,7 +286,7 @@ function ChatThread({ conversation, currentUserId, onBack, onSent }) {
         </div>
         <span
           className="hidden sm:flex items-center gap-1.5 rounded-full px-3 py-1 text-[11px] font-semibold shrink-0"
-          style={{ backgroundColor: "rgba(200,255,77,0.08)", border: "1px solid rgba(200,255,77,0.22)", color: COLOR.lima }}
+          style={{ backgroundColor: "rgba(83,252,99,0.08)", border: "1px solid rgba(83,252,99,0.22)", color: COLOR.lima }}
         >
           {conversation.isBuyer ? <ShoppingBag size={12} /> : <Store size={12} />}
           {conversation.isBuyer ? "Escribes como cliente" : `Respondes como ${conversation.storeName ?? "tu tienda"}`}
@@ -360,7 +360,7 @@ function ChatThread({ conversation, currentUserId, onBack, onSent }) {
           onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && handleSend()}
           placeholder="Escribe un mensaje..."
           maxLength={2000}
-          className="flex-1 rounded-full px-4 py-2.5 text-sm outline-none border border-[#2A2622] bg-[#151311] text-[#FBF6EF] transition focus:border-[#C8FF4D]"
+          className="flex-1 rounded-full px-4 py-2.5 text-sm outline-none border border-[#2A2622] bg-[#151311] text-[#FBF6EF] transition focus:border-[#53FC63]"
         />
         <motion.button
           whileTap={{ scale: 0.88 }}

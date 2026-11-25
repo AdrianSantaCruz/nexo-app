@@ -178,7 +178,7 @@ export default function PostCreateModal({ storeId, authorId, accent, products = 
                       type="button"
                       onClick={() => toggleProduct(p.id)}
                       className="flex items-center gap-2 rounded-md px-2 py-1.5 text-left"
-                      style={{ backgroundColor: selected ? "rgba(200,255,77,0.12)" : "transparent" }}
+                      style={{ backgroundColor: selected ? "rgba(83,252,99,0.12)" : "transparent" }}
                     >
                       <div className="w-6 h-6 rounded overflow-hidden shrink-0" style={{ backgroundColor: COLOR.negro }}>
                         {p.imageUrl && <img src={p.imageUrl} alt="" className="w-full h-full object-cover" />}

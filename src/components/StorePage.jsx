@@ -27,7 +27,7 @@ const COLOR = {
 };
 
 const PRESET_ACCENTS = [
-  { id: "lima", value: "#C8FF4D" },
+  { id: "lima", value: "#53FC63" },
   { id: "coral", value: "#FF8A65" },
   { id: "aqua", value: "#4DD9C8" },
   { id: "oro", value: "#F5C242" },
@@ -1123,7 +1123,7 @@ function ProductDetail({ product, reviews, accent, onBack, onAskQuestion, isOwne
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               className="rounded-xl p-3 mb-3"
-              style={{ backgroundColor: COLOR.surface, border: "1px solid rgba(200,255,77,0.25)" }}
+              style={{ backgroundColor: COLOR.surface, border: "1px solid rgba(83,252,99,0.25)" }}
             >
               <p className="text-[11px] mb-2" style={{ color: COLOR.muted }}>
                 Compraste este producto — cuéntanos qué tal

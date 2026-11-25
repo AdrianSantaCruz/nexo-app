@@ -35,7 +35,7 @@ import { EmptyState } from "./ui/Motion";
 const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#C9C0B3",
   border: "#2A2622",
@@ -116,7 +116,7 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
               transition={{ duration: 6, ease: "easeOut" }}
             />
           ) : (
-            <div className="w-full h-full" style={{ background: "linear-gradient(160deg, #12300B, #0B0A09)" }} />
+            <div className="w-full h-full" style={{ background: "linear-gradient(160deg, #06300F, #0B0A09)" }} />
           )}
         </div>
 
@@ -135,7 +135,7 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
               onAnimationComplete={() => setBurst(0)}
               className="absolute inset-0 flex items-center justify-center pointer-events-none"
             >
-              <Heart size={110} fill={COLOR.lima} style={{ color: COLOR.lima, filter: "drop-shadow(0 0 24px rgba(200,255,77,0.6))" }} />
+              <Heart size={110} fill={COLOR.lima} style={{ color: COLOR.lima, filter: "drop-shadow(0 0 24px rgba(83,252,99,0.6))" }} />
             </motion.div>
           )}
         </AnimatePresence>
@@ -158,7 +158,7 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
             <Link
               to={`/tienda/${post.storeSlug}`}
               className="w-11 h-11 rounded-full flex items-center justify-center text-xs font-semibold overflow-hidden"
-              style={{ backgroundColor: COLOR.lima, color: COLOR.negro, boxShadow: "0 0 0 2px #C8FF4D, 0 0 0 5px rgba(200,255,77,0.2)" }}
+              style={{ backgroundColor: COLOR.lima, color: COLOR.negro, boxShadow: "0 0 0 2px #53FC63, 0 0 0 5px rgba(83,252,99,0.2)" }}
             >
               {post.storeAvatarUrl ? <img src={post.storeAvatarUrl} alt="" className="w-full h-full object-cover" /> : post.initials}
             </Link>
@@ -229,7 +229,7 @@ function FeedSlide({ post, liked, active, muted, onToggleMute, onToggleLike, onO
         >
           <div
             className="inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 mb-2"
-            style={{ backgroundColor: "rgba(11,10,9,0.55)", border: "1px solid rgba(200,255,77,0.22)", backdropFilter: "blur(6px)" }}
+            style={{ backgroundColor: "rgba(11,10,9,0.55)", border: "1px solid rgba(83,252,99,0.22)", backdropFilter: "blur(6px)" }}
           >
             {isProduct && <Tag size={12} style={{ color: COLOR.lima }} />}
             {isPost && <Film size={12} style={{ color: COLOR.lima }} />}

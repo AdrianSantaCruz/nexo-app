@@ -8,7 +8,7 @@ import * as storesApi from "../lib/storesApi";
 import OrderCard from "./OrderCard";
 import { EmptyState, Reveal, Skeleton } from "./ui/Motion";
 
-const COLOR = { negro: "#0B0A09", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { negro: "#0B0A09", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 function formatSoles(n) {
   return `S/ ${Number.isInteger(n) ? n : n.toFixed(2)}`;
@@ -98,7 +98,7 @@ export default function SalesPage() {
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: 1, y: 0 }}
             className="rounded-2xl p-5"
-            style={{ backgroundColor: "rgba(200,255,77,0.07)", border: "1px solid rgba(200,255,77,0.2)" }}
+            style={{ backgroundColor: "rgba(83,252,99,0.07)", border: "1px solid rgba(83,252,99,0.2)" }}
           >
             <p className="text-xs" style={{ color: COLOR.muted }}>
               Por cobrar (sin cancelados)

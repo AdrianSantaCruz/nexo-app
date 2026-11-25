@@ -8,7 +8,7 @@ const COLOR = {
   surface: "#151311",
   surfaceHigh: "#1E1B18",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -24,7 +24,7 @@ export function LockerCard({ point, selected, onSelect, disabled }) {
       whileTap={interactive && !disabled ? { scale: 0.99 } : undefined}
       className="w-full flex items-start gap-3 rounded-2xl p-3.5 text-left"
       style={{
-        backgroundColor: selected ? "rgba(200,255,77,0.08)" : COLOR.surfaceHigh,
+        backgroundColor: selected ? "rgba(83,252,99,0.08)" : COLOR.surfaceHigh,
         border: `1.5px solid ${selected ? COLOR.lima : COLOR.border}`,
         opacity: disabled && !selected ? 0.5 : 1,
         cursor: interactive && !disabled ? "pointer" : "default",
@@ -32,7 +32,7 @@ export function LockerCard({ point, selected, onSelect, disabled }) {
     >
       <span
         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: selected ? COLOR.lima : "rgba(200,255,77,0.08)" }}
+        style={{ backgroundColor: selected ? COLOR.lima : "rgba(83,252,99,0.08)" }}
       >
         <Lock size={18} style={{ color: selected ? COLOR.negro : COLOR.lima }} />
       </span>
@@ -100,7 +100,7 @@ export default function PickupPicker({ method, onMethod, points, status, selecte
                 onClick={() => onMethod(o.id)}
                 whileTap={{ scale: 0.98 }}
                 className="relative flex-1 flex items-center gap-2.5 rounded-xl p-3 text-left disabled:opacity-60"
-                style={{ border: `1.5px solid ${on ? COLOR.lima : COLOR.border}`, backgroundColor: on ? "rgba(200,255,77,0.08)" : COLOR.surfaceHigh }}
+                style={{ border: `1.5px solid ${on ? COLOR.lima : COLOR.border}`, backgroundColor: on ? "rgba(83,252,99,0.08)" : COLOR.surfaceHigh }}
               >
                 <Icon size={17} style={{ color: on ? COLOR.lima : COLOR.muted }} />
                 <span>

@@ -8,7 +8,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -16,8 +16,8 @@ const COLOR = {
 const STATUS_COLOR = {
   pendiente: "#F5C242",
   preparando: "#4DD9C8",
-  enviado: "#C8FF4D",
-  entregado: "#A6E02E",
+  enviado: "#53FC63",
+  entregado: "#17D63A",
   cancelado: "#FF8A65",
 };
 
@@ -46,7 +46,7 @@ function DeliverWithCode({ onDeliver }) {
   };
 
   return (
-    <div className="mt-3 rounded-xl p-3" style={{ backgroundColor: "rgba(200,255,77,0.05)", border: "1px solid rgba(200,255,77,0.18)" }}>
+    <div className="mt-3 rounded-xl p-3" style={{ backgroundColor: "rgba(83,252,99,0.05)", border: "1px solid rgba(83,252,99,0.18)" }}>
       <p className="text-xs flex items-center gap-1.5" style={{ color: COLOR.hueso }}>
         <KeyRound size={13} style={{ color: COLOR.lima }} />
         Al entregar el pedido, pide al comprador su código y digítalo aquí.
@@ -129,7 +129,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
 
       <div
         className="mt-2.5 w-fit flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold"
-        style={{ color: payColor, backgroundColor: paid ? "rgba(200,255,77,0.08)" : refunded ? "rgba(255,138,101,0.1)" : "rgba(245,194,66,0.1)" }}
+        style={{ color: payColor, backgroundColor: paid ? "rgba(83,252,99,0.08)" : refunded ? "rgba(255,138,101,0.1)" : "rgba(245,194,66,0.1)" }}
       >
         <PayIcon size={13} />
         {paid
@@ -140,7 +140,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
       </div>
 
       {isLocker && group.pickupPoint && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-xl p-3" style={{ backgroundColor: "rgba(200,255,77,0.05)", border: "1px solid rgba(200,255,77,0.18)" }}>
+        <div className="mt-3 flex items-start gap-2.5 rounded-xl p-3" style={{ backgroundColor: "rgba(83,252,99,0.05)", border: "1px solid rgba(83,252,99,0.18)" }}>
           <MapPin size={16} className="shrink-0 mt-0.5" style={{ color: COLOR.lima }} />
           <div className="min-w-0">
             <p className="text-sm font-semibold" style={{ color: COLOR.hueso }}>
@@ -181,7 +181,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
               </p>
             )}
             {l.customizationNote && (
-              <p className="text-xs" style={{ color: "#A6E02E" }}>
+              <p className="text-xs" style={{ color: "#17D63A" }}>
                 Nota: {l.customizationNote}
               </p>
             )}
@@ -216,7 +216,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
       )}
 
       {mode === "buyer" && paid && group.orderCode && group.status !== "cancelado" && group.status !== "entregado" && (
-        <div className="mt-3 rounded-xl p-4 text-center" style={{ backgroundColor: "rgba(200,255,77,0.08)", border: "1px solid rgba(200,255,77,0.3)" }}>
+        <div className="mt-3 rounded-xl p-4 text-center" style={{ backgroundColor: "rgba(83,252,99,0.08)", border: "1px solid rgba(83,252,99,0.3)" }}>
           <p className="text-xs flex items-center justify-center gap-1.5" style={{ color: COLOR.muted }}>
             <KeyRound size={13} style={{ color: COLOR.lima }} />
             Tu código de pedido
@@ -234,7 +234,7 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
         </div>
       )}
       {mode === "buyer" && group.status === "entregado" && (
-        <p className="text-xs mt-3 flex items-center gap-1.5" style={{ color: "#A6E02E" }}>
+        <p className="text-xs mt-3 flex items-center gap-1.5" style={{ color: "#17D63A" }}>
           <BadgeCheck size={14} />
           {isLocker ? "Retiraste tu pedido del locker." : "El vendedor confirmó la entrega con tu código."}
         </p>

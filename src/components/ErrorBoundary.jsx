@@ -25,7 +25,7 @@ export default class ErrorBoundary extends Component {
             Esta pantalla tuvo un problema. Recarga la página para continuar.
           </p>
           <div className="flex gap-3 justify-center mt-5">
-            <button onClick={() => window.location.reload()} className="rounded-full px-6 py-2.5 text-sm font-semibold" style={{ backgroundColor: "#C8FF4D", color: "#0B0A09" }}>
+            <button onClick={() => window.location.reload()} className="rounded-full px-6 py-2.5 text-sm font-semibold" style={{ backgroundColor: "#53FC63", color: "#0B0A09" }}>
               Recargar
             </button>
             <a href="/" className="rounded-full px-6 py-2.5 text-sm" style={{ border: "1px solid #2A2622", color: "#FBF6EF" }}>

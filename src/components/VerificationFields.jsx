@@ -3,15 +3,15 @@ import { ImagePlus, ShieldCheck, Check } from "lucide-react";
 import { AuthField } from "./ui/AuthKit";
 import { DOC_LABEL } from "../lib/sellerVerificationApi";
 
-const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 function PhotoPick({ label, file, onChange, required }) {
   return (
     <label
-      className="flex items-center gap-3 rounded-xl px-4 py-3 cursor-pointer transition hover:border-[#C8FF4D]"
+      className="flex items-center gap-3 rounded-xl px-4 py-3 cursor-pointer transition hover:border-[#53FC63]"
       style={{ backgroundColor: COLOR.negro, border: `1px dashed ${file ? COLOR.lima : COLOR.border}` }}
     >
-      <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: file ? COLOR.lima : "rgba(200,255,77,0.08)" }}>
+      <span className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{ backgroundColor: file ? COLOR.lima : "rgba(83,252,99,0.08)" }}>
         {file ? <Check size={17} style={{ color: COLOR.negro }} /> : <ImagePlus size={17} style={{ color: COLOR.lima }} />}
       </span>
       <span className="min-w-0 flex-1">
@@ -36,7 +36,7 @@ export default function VerificationFields({ value, onChange }) {
 
   return (
     <div className="flex flex-col gap-3.5">
-      <div className="flex items-start gap-2.5 rounded-xl p-3" style={{ backgroundColor: "rgba(200,255,77,0.06)", border: "1px solid rgba(200,255,77,0.2)" }}>
+      <div className="flex items-start gap-2.5 rounded-xl p-3" style={{ backgroundColor: "rgba(83,252,99,0.06)", border: "1px solid rgba(83,252,99,0.2)" }}>
         <ShieldCheck size={17} className="shrink-0 mt-0.5" style={{ color: COLOR.lima }} />
         <p className="text-xs leading-relaxed" style={{ color: COLOR.hueso }}>
           Para vender necesitamos confirmar tu identidad. Tus datos se guardan de forma privada, solo el equipo de Nexo los revisa y nunca se muestran a otros usuarios. Hasta que los aprobemos podrás preparar tu tienda, pero no publicar ni recibir pedidos.

@@ -12,7 +12,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -417,7 +417,7 @@ export default function ProfilePage() {
                 <Link
                   to={`/tienda/${currentUser.storeSlug}`}
                   className="flex items-center gap-3 mt-3 rounded-xl p-4"
-                  style={{ backgroundColor: "rgba(200,255,77,0.08)", border: `1px solid ${COLOR.border}` }}
+                  style={{ backgroundColor: "rgba(83,252,99,0.08)", border: `1px solid ${COLOR.border}` }}
                 >
                   <Store size={18} style={{ color: COLOR.lima }} />
                   <div className="min-w-0 flex-1">

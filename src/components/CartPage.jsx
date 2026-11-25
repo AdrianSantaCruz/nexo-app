@@ -16,7 +16,7 @@ const COLOR = {
   surface: "#151311",
   surfaceHigh: "#1E1B18",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };

@@ -13,7 +13,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };

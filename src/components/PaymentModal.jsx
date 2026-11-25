@@ -8,7 +8,7 @@ const COLOR = {
   surface: "#151311",
   surfaceHigh: "#1E1B18",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -85,7 +85,7 @@ export default function PaymentModal({ total, note, onPay, onClose, onDone }) {
               </p>
               <div
                 className="mx-auto mt-3 w-fit flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium"
-                style={{ backgroundColor: "rgba(200,255,77,0.08)", border: "1px solid rgba(200,255,77,0.22)", color: COLOR.lima }}
+                style={{ backgroundColor: "rgba(83,252,99,0.08)", border: "1px solid rgba(83,252,99,0.22)", color: COLOR.lima }}
               >
                 <FlaskConical size={13} />
                 Modo simulación: no se cobra dinero real
@@ -107,13 +107,13 @@ export default function PaymentModal({ total, note, onPay, onClose, onDone }) {
                       whileTap={{ scale: 0.98 }}
                       className="flex items-center gap-3 rounded-2xl p-3.5 text-left"
                       style={{
-                        backgroundColor: on ? "rgba(200,255,77,0.08)" : COLOR.surfaceHigh,
+                        backgroundColor: on ? "rgba(83,252,99,0.08)" : COLOR.surfaceHigh,
                         border: `1.5px solid ${on ? COLOR.lima : COLOR.border}`,
                       }}
                     >
                       <span
                         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-                        style={{ backgroundColor: on ? COLOR.lima : "rgba(200,255,77,0.08)" }}
+                        style={{ backgroundColor: on ? COLOR.lima : "rgba(83,252,99,0.08)" }}
                       >
                         <Icon size={19} style={{ color: on ? COLOR.negro : COLOR.lima }} />
                       </span>
@@ -188,7 +188,7 @@ export default function PaymentModal({ total, note, onPay, onClose, onDone }) {
                 animate={{ scale: 1, rotate: 0 }}
                 transition={SPRING_BOUNCY}
                 className="w-24 h-24 rounded-full flex items-center justify-center"
-                style={{ backgroundColor: COLOR.lima, boxShadow: "0 0 50px rgba(200,255,77,0.45)" }}
+                style={{ backgroundColor: COLOR.lima, boxShadow: "0 0 50px rgba(83,252,99,0.45)" }}
               >
                 <Check size={48} strokeWidth={3.2} style={{ color: COLOR.negro }} />
               </motion.div>

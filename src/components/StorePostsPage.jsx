@@ -9,7 +9,7 @@ import * as postsApi from "../lib/postsApi";
 import PostCreateModal from "./PostCreateModal";
 import { EmptyState, Reveal, Skeleton, Stagger, StaggerItem } from "./ui/Motion";
 
-const COLOR = { negro: "#0B0A09", surface: "#151311", surfaceHigh: "#1E1B18", border: "#2A2622", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { negro: "#0B0A09", surface: "#151311", surfaceHigh: "#1E1B18", border: "#2A2622", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 // Miniatura de una publicación de la tienda con sus números reales.
 export function PostTile({ post, onDelete }) {

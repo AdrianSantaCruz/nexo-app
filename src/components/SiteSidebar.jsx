@@ -13,7 +13,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -26,7 +26,7 @@ function SidebarItem({ icon: Icon, label, active, to, badge }) {
           layoutId="sidebar-pill"
           transition={SPRING}
           className="absolute inset-0 rounded-xl"
-          style={{ backgroundColor: "rgba(200,255,77,0.1)", boxShadow: "inset 0 0 0 1px rgba(200,255,77,0.18)" }}
+          style={{ backgroundColor: "rgba(83,252,99,0.1)", boxShadow: "inset 0 0 0 1px rgba(83,252,99,0.18)" }}
         />
       )}
       <motion.div
@@ -120,12 +120,18 @@ export default function SiteSidebar() {
       style={{ backgroundColor: "rgba(11,10,9,0.86)", backdropFilter: "blur(14px)", borderRight: `1px solid ${COLOR.border}` }}
     >
       <Link to="/" className="flex items-center justify-center lg:justify-start gap-2 h-16 px-0 lg:px-4 shrink-0">
-        <motion.span whileHover={{ rotate: -8, scale: 1.08 }} whileTap={{ scale: 0.92 }} transition={SPRING_BOUNCY} className="flex">
+        {/* Barra angosta: solo el símbolo. Barra ancha: logo horizontal completo. */}
+        <motion.span whileHover={{ rotate: -8, scale: 1.08 }} whileTap={{ scale: 0.92 }} transition={SPRING_BOUNCY} className="flex lg:hidden">
           <LogoMark size={32} />
         </motion.span>
-        <span className="hidden lg:inline text-lg font-bold tracking-tight" style={{ color: COLOR.hueso }}>
-          Nexo
-        </span>
+        <motion.img
+          src="/nexo-logo.png"
+          alt="Nexo"
+          whileHover={{ scale: 1.05 }}
+          whileTap={{ scale: 0.96 }}
+          transition={SPRING_BOUNCY}
+          className="hidden lg:block h-7 w-auto"
+        />
       </Link>
 
       {/* Buscador: campo completo en pantallas grandes, solo ícono (lleva a
@@ -141,7 +147,7 @@ export default function SiteSidebar() {
         <motion.div
           animate={{
             borderColor: searchFocused ? COLOR.lima : COLOR.border,
-            boxShadow: searchFocused ? "0 0 0 3px rgba(200,255,77,0.12)" : "0 0 0 0px rgba(200,255,77,0)",
+            boxShadow: searchFocused ? "0 0 0 3px rgba(83,252,99,0.12)" : "0 0 0 0px rgba(83,252,99,0)",
           }}
           transition={{ duration: 0.2 }}
           className="hidden lg:flex items-center gap-2 rounded-full px-3 py-2"

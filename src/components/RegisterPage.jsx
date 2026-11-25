@@ -35,7 +35,7 @@ export default function RegisterPage() {
     return (
       <AuthShell title="Revisa tu correo" subtitle={`Te enviamos un enlace de confirmación a ${email}. Confírmalo para poder ingresar.`}>
         <div className="flex justify-center">
-          <MailCheck size={30} style={{ color: "#C8FF4D" }} />
+          <MailCheck size={30} style={{ color: "#53FC63" }} />
         </div>
       </AuthShell>
     );
@@ -48,7 +48,7 @@ export default function RegisterPage() {
       footer={
         <>
           ¿Ya tienes cuenta?{" "}
-          <Link to="/ingresar" className="font-semibold hover:underline" style={{ color: "#C8FF4D" }}>
+          <Link to="/ingresar" className="font-semibold hover:underline" style={{ color: "#53FC63" }}>
             Ingresar
           </Link>
         </>

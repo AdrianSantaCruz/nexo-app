@@ -10,7 +10,7 @@ import { EMPTY_VERIFICATION } from "../lib/sellerVerificationApi";
 import { AuthButton, AuthShell } from "./ui/AuthKit";
 import VerificationFields from "./VerificationFields";
 
-const COLOR = { negro: "#0B0A09", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378", coral: "#FF8A65" };
+const COLOR = { negro: "#0B0A09", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378", coral: "#FF8A65" };
 
 function StatusCard({ icon: Icon, color, title, children }) {
   return (

@@ -7,7 +7,7 @@ import * as pickupApi from "../lib/pickupApi";
 import { LockerCard } from "./PickupPicker";
 import { EmptyState, Reveal, Skeleton, Stagger, StaggerItem } from "./ui/Motion";
 
-const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 const STEPS = [
   { icon: Store, title: "La tienda deja tu pedido", text: "Al dejarlo en el locker, este registra que ya está listo." },
@@ -133,7 +133,7 @@ export default function LockersPage() {
         {STEPS.map((s, i) => (
           <StaggerItem key={s.title}>
             <div className="h-full rounded-2xl p-4" style={{ backgroundColor: COLOR.surface, border: `1px solid ${COLOR.border}` }}>
-              <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(200,255,77,0.1)" }}>
+              <span className="w-9 h-9 rounded-xl flex items-center justify-center" style={{ backgroundColor: "rgba(83,252,99,0.1)" }}>
                 <s.icon size={17} style={{ color: COLOR.lima }} />
               </span>
               <p className="text-sm font-semibold mt-3" style={{ color: COLOR.hueso }}>

@@ -8,7 +8,7 @@ import { metaFor } from "../lib/notificationMeta";
 import { EmptyState, Reveal, Skeleton } from "./ui/Motion";
 import { EASE_OUT, SPRING } from "../lib/motionConfig";
 
-const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { negro: "#0B0A09", surface: "#151311", border: "#2A2622", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 function Row({ n, index, onOpen, onRemove }) {
   const { icon: Icon, color } = metaFor(n.type);
@@ -22,7 +22,7 @@ function Row({ n, index, onOpen, onRemove }) {
       exit={{ opacity: 0, x: -40, transition: { duration: 0.2 } }}
       transition={{ ...SPRING, delay: Math.min(index, 8) * 0.03 }}
       className="group relative flex items-start gap-3.5 rounded-2xl p-4 cursor-pointer"
-      style={{ backgroundColor: unread ? "rgba(200,255,77,0.045)" : COLOR.surface, border: `1px solid ${unread ? "rgba(200,255,77,0.22)" : COLOR.border}` }}
+      style={{ backgroundColor: unread ? "rgba(83,252,99,0.045)" : COLOR.surface, border: `1px solid ${unread ? "rgba(83,252,99,0.22)" : COLOR.border}` }}
       whileHover={{ y: -2 }}
       onClick={onOpen}
     >
@@ -45,7 +45,7 @@ function Row({ n, index, onOpen, onRemove }) {
           </p>
         )}
       </div>
-      {unread && <span className="absolute top-4 right-4 w-2 h-2 rounded-full" style={{ backgroundColor: COLOR.lima, boxShadow: "0 0 10px rgba(200,255,77,0.7)" }} />}
+      {unread && <span className="absolute top-4 right-4 w-2 h-2 rounded-full" style={{ backgroundColor: COLOR.lima, boxShadow: "0 0 10px rgba(83,252,99,0.7)" }} />}
       <button
         onClick={(e) => {
           e.stopPropagation();
@@ -111,7 +111,7 @@ export default function NotificationsPage() {
 
       {browserPermission === "default" && (
         <Reveal delay={0.05}>
-          <div className="flex items-center gap-3 rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(200,255,77,0.06)", border: "1px solid rgba(200,255,77,0.2)" }}>
+          <div className="flex items-center gap-3 rounded-2xl p-4 mb-4" style={{ backgroundColor: "rgba(83,252,99,0.06)", border: "1px solid rgba(83,252,99,0.2)" }}>
             <BellRing size={20} style={{ color: COLOR.lima }} className="shrink-0" />
             <p className="text-xs leading-relaxed flex-1" style={{ color: COLOR.hueso }}>
               Activa los avisos del navegador para enterarte de pedidos y mensajes aunque tengas Nexo en segundo plano.

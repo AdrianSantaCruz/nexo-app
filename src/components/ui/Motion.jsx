@@ -65,9 +65,9 @@ export function EmptyState({ icon: Icon, title, subtitle, children }) {
       >
         <div
           className="nexo-float w-20 h-20 rounded-3xl flex items-center justify-center mb-5 nexo-glow"
-          style={{ backgroundColor: "#1E1B18", border: "1px solid rgba(200,255,77,0.22)" }}
+          style={{ backgroundColor: "#1E1B18", border: "1px solid rgba(83,252,99,0.22)" }}
         >
-          <Icon size={32} style={{ color: "#C8FF4D" }} />
+          <Icon size={32} style={{ color: "#53FC63" }} />
         </div>
       </motion.div>
       <Reveal delay={0.1}>

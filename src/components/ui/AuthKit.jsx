@@ -2,7 +2,7 @@ import { motion } from "motion/react";
 import LogoMark from "../LogoMark";
 import { EASE_OUT, SPRING_BOUNCY } from "../../lib/motionConfig";
 
-const COLOR = { hueso: "#FBF6EF", muted: "#8A8378", lima: "#C8FF4D", negro: "#0B0A09" };
+const COLOR = { hueso: "#FBF6EF", muted: "#8A8378", lima: "#53FC63", negro: "#0B0A09" };
 
 // Marco de las pantallas de acceso (ingresar, registro, crear tienda): una
 // tarjeta con resplandor verde y el logo que "rebota" al aparecer.
@@ -15,7 +15,7 @@ export function AuthShell({ title, subtitle, children, footer }) {
           width: 520,
           height: 520,
           borderRadius: "50%",
-          background: "radial-gradient(circle, rgba(200,255,77,0.14), transparent 65%)",
+          background: "radial-gradient(circle, rgba(83,252,99,0.14), transparent 65%)",
           top: "8%",
           left: "50%",
           transform: "translateX(-50%)",
@@ -54,7 +54,7 @@ export function AuthShell({ title, subtitle, children, footer }) {
 }
 
 const FIELD_CLASS =
-  "w-full mt-1.5 rounded-xl px-4 py-3 text-sm outline-none border border-[#2A2622] bg-[#0B0A09] text-[#FBF6EF] transition focus:border-[#C8FF4D] focus:shadow-[0_0_0_3px_rgba(200,255,77,0.12)] placeholder:text-[#8A8378]";
+  "w-full mt-1.5 rounded-xl px-4 py-3 text-sm outline-none border border-[#2A2622] bg-[#0B0A09] text-[#FBF6EF] transition focus:border-[#53FC63] focus:shadow-[0_0_0_3px_rgba(83,252,99,0.12)] placeholder:text-[#8A8378]";
 
 export function AuthField({ label, delay = 0, as = "input", ...props }) {
   const Tag = as;

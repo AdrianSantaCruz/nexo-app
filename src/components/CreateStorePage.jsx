@@ -10,7 +10,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
 };
@@ -109,7 +109,7 @@ export default function CreateStorePage() {
             Enlace de tu tienda
           </label>
           <div
-            className="flex items-center gap-1 mt-1.5 rounded-xl px-4 py-3 border border-[#2A2622] bg-[#0B0A09] transition focus-within:border-[#C8FF4D] focus-within:shadow-[0_0_0_3px_rgba(200,255,77,0.12)]"
+            className="flex items-center gap-1 mt-1.5 rounded-xl px-4 py-3 border border-[#2A2622] bg-[#0B0A09] transition focus-within:border-[#53FC63] focus-within:shadow-[0_0_0_3px_rgba(83,252,99,0.12)]"
           >
             <span className="text-xs shrink-0" style={{ color: COLOR.muted }}>
               nexo.app/tienda/

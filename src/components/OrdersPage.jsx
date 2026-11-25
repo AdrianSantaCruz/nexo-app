@@ -8,7 +8,7 @@ import OrderCard from "./OrderCard";
 import PaymentModal from "./PaymentModal";
 import { EmptyState, Reveal, Skeleton } from "./ui/Motion";
 
-const COLOR = { negro: "#0B0A09", lima: "#C8FF4D", hueso: "#FBF6EF", muted: "#8A8378" };
+const COLOR = { negro: "#0B0A09", lima: "#53FC63", hueso: "#FBF6EF", muted: "#8A8378" };
 
 // "Mis pedidos": todo lo que compró el usuario, separado por tienda, con el
 // estado del pago y de la entrega (los datos son reales, vienen de Supabase).

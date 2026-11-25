@@ -12,7 +12,7 @@ const COLOR = {
   negro: "#0B0A09",
   surface: "#151311",
   border: "#2A2622",
-  lima: "#C8FF4D",
+  lima: "#53FC63",
   hueso: "#FBF6EF",
   muted: "#8A8378",
   coral: "#FF8A65",
@@ -40,7 +40,7 @@ function Row({ icon: Icon, label, sub, to, onClick, danger }) {
     >
       <span
         className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0"
-        style={{ backgroundColor: danger ? "rgba(255,138,101,0.12)" : "rgba(200,255,77,0.08)" }}
+        style={{ backgroundColor: danger ? "rgba(255,138,101,0.12)" : "rgba(83,252,99,0.08)" }}
       >
         <Icon size={18} style={{ color: danger ? COLOR.coral : COLOR.lima }} />
       </span>
