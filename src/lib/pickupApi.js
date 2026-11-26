@@ -15,6 +15,18 @@ export function textoRecojo(text) {
     .replace(/en el locker/g, "en el punto de recojo");
 }
 
+// Enlace a Google Maps para un punto de recojo (en el celular abre la app). La
+// base de datos no guarda coordenadas: se busca por la dirección escrita, sin
+// las palabras que confunden al buscador ("referencial", "Alrededores del"...).
+export function mapUrl({ address, district }) {
+  const place = (address ?? "")
+    .replace(/\([^)]*\)/g, "")
+    .replace(/^(Alrededores del?|Zona comercial de la|Centro Histórico, a una cuadra de la)\s+/i, "")
+    .trim();
+  const query = [place, district, "Arequipa, Perú"].filter(Boolean).join(", ");
+  return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(query)}`;
+}
+
 function mapPoint(row) {
   return {
     id: row.id,

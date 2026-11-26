@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { motion } from "motion/react";
-import { Store, User, ShieldCheck, Clock, Undo2, MapPin, KeyRound, TriangleAlert, BadgeCheck } from "lucide-react";
+import { Store, User, ShieldCheck, Clock, Undo2, MapPin, KeyRound, TriangleAlert, BadgeCheck, ExternalLink } from "lucide-react";
 import { METHOD_LABEL, STATUS_LABEL, statusLabel } from "../lib/ordersApi";
+import { mapUrl } from "../lib/pickupApi";
 import { EASE_OUT, SPRING_SOFT } from "../lib/motionConfig";
 
 const COLOR = {
@@ -140,20 +141,30 @@ export default function OrderCard({ group, index = 0, mode, busy, onStatus, onCa
       </div>
 
       {isLocker && group.pickupPoint && (
-        <div className="mt-3 flex items-start gap-2.5 rounded-xl p-3" style={{ backgroundColor: "rgba(83,252,99,0.05)", border: "1px solid rgba(83,252,99,0.18)" }}>
+        <a
+          href={mapUrl(group.pickupPoint)}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="group mt-3 flex items-start gap-2.5 rounded-xl p-3 transition-colors hover:brightness-125"
+          style={{ backgroundColor: "rgba(83,252,99,0.05)", border: "1px solid rgba(83,252,99,0.18)" }}
+        >
           <MapPin size={16} className="shrink-0 mt-0.5" style={{ color: COLOR.lima }} />
           <div className="min-w-0">
             <p className="text-sm font-semibold" style={{ color: COLOR.hueso }}>
               {group.pickupPoint.name}
             </p>
-            <p className="text-xs" style={{ color: COLOR.muted }}>
+            <p className="text-xs underline underline-offset-2" style={{ color: COLOR.muted }}>
               {group.pickupPoint.district} · {group.pickupPoint.address}
             </p>
             <p className="text-xs" style={{ color: COLOR.muted }}>
               {group.pickupPoint.hours}
             </p>
+            <p className="text-xs font-semibold mt-1.5 flex items-center gap-1 group-hover:underline" style={{ color: COLOR.lima }}>
+              Ver en el mapa
+              <ExternalLink size={12} />
+            </p>
           </div>
-        </div>
+        </a>
       )}
       {!isLocker && (
         <div className="mt-3 flex items-start gap-2 rounded-xl p-3" style={{ backgroundColor: "rgba(245,194,66,0.07)", border: "1px solid rgba(245,194,66,0.25)" }}>
